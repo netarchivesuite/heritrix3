@@ -20,7 +20,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 	<groupId>org.archive</groupId>
 	<!--This project is parent to all under 'projects' subdirectory-->
 	<artifactId>heritrix</artifactId>
-	<version>3.3.0-SNAPSHOT</version>
+	<version>3.3.0-LBS-2014-03</version>
 	<packaging>pom</packaging>
 	<name>Heritrix 3</name>
 	<description>
@@ -137,19 +137,17 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 
 	<distributionManagement>
 		<repository>
-			<id>repository</id>
-			<name>Repository</name>
-			<!--Pass as command-line system property to maven-->
-			<url>${repository.url}</url>
+			<id>repo.landsbokasafn.is</id>
+			<name>repo.landsbokasafn.is-releases</name>
+			<url>http://repo.landsbokasafn.is/libs-releases-local</url>
 		</repository>
-		<site>
-			<id>website</id>
-			<name>Website</name>
-			<!--Pass as command-line system property to maven-->
-			<url>${website.url}/projects/${project.artifactId}</url>
-		</site>
+		<snapshotRepository>
+			<id>repo.landsbokasafn.is</id>
+			<name>repo.landsbokasafn.is-snapshots</name>
+			<url>http://repo.landsbokasafn.is/libs-snapshots-local</url>
+		</snapshotRepository>
 	</distributionManagement>
-
+	
 	<developers>
 		<developer>
 			<name>Gordon Mohr</name>
