@@ -644,6 +644,7 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
      */
     public void stripToMinimal() {
         data = null;
+        outLinks.clear();
     }
 
     /**
