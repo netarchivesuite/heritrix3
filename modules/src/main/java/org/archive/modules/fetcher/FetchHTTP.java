@@ -663,6 +663,10 @@ public class FetchHTTP extends Processor implements Lifecycle {
         } catch (IOException e) {
             failedExecuteCleanup(curi, e);
             return;
+        } catch (NullPointerException e) {
+        	// Dealing with HER-2075
+        	failedExecuteCleanup(curi, e);
+        	return;
         }
         
         maybeMidfetchAbort(curi, req.request);
