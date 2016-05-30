@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>org.archive</groupId>
 		<artifactId>heritrix</artifactId>
-		<version>3.3.0-LBS-2016-02-RC2</version>
+		<version>3.3.0-LBS-2016-02</version>
 	</parent>
 	<groupId>org.archive.heritrix</groupId>
 	<artifactId>heritrix-contrib</artifactId>
