@@ -481,7 +481,16 @@ public class BdbMultipleWorkQueues {
      */
     public void delete(CrawlURI item) throws DatabaseException {
         OperationStatus status;
-        DatabaseEntry de = (DatabaseEntry)item.getHolderKey();
+        if (item == null){
+            LOGGER.severe("CrawlURI item is null. Ignoring item"); 
+            return;
+        }
+        Object holderKey = item.getHolderKey();
+        if (holderKey == null) {
+            LOGGER.severe("Bdn holderkey for item '" +  item.getURI() + "' was null. Unable to delete item in Bdb database"); 
+            return;
+        }
+        DatabaseEntry de = (DatabaseEntry)holderKey;
         status = pendingUrisDB.delete(null, de);
         if (status != OperationStatus.SUCCESS) {
             LOGGER.severe("expected item not present: "
@@ -504,7 +513,7 @@ public class BdbMultipleWorkQueues {
      */
     protected void sync() {
     	if (this.pendingUrisDB == null) {
-    		return;
+            return;
     	}
         try {
             this.pendingUrisDB.sync();
