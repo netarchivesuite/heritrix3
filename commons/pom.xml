@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.archive</groupId>
 		<artifactId>heritrix</artifactId>
-		<version>3.3.0-LBS-2016-02</version>
+		<version>3.3.0-LBS-2016-02-BDB-5.0.x</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.archive.heritrix</groupId>
@@ -34,7 +34,7 @@
 		<dependency>
 			<groupId>com.sleepycat</groupId>
 			<artifactId>je</artifactId>
-			<version>4.1.6</version>
+			<version>${je.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-lang</groupId>
