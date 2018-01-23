@@ -997,6 +997,7 @@ public class CrawlJob implements Comparable<CrawlJob>, ApplicationListener<Appli
             	if (outFile.exists()) {
             		outFile.delete();
             	}
+            	outFile.deleteOnExit();
                 FileOutputStream out = new FileOutputStream(outFile);
                 OutputStreamWriter outStreamWriter = new OutputStreamWriter(out, StandardCharsets.UTF_8);
                 PrintWriter writer = new PrintWriter(new BufferedWriter(outStreamWriter, 65536));
