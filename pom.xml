@@ -20,7 +20,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 	<groupId>org.archive</groupId>
 	<!--This project is parent to all under 'projects' subdirectory-->
 	<artifactId>heritrix</artifactId>
-	<version>3.3.0-BDB-5.0.x</version>
+	<version>3.3.0-BDB-5.0.x-NAS-1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Heritrix 3</name>
 	<description>
@@ -95,6 +95,12 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 			<id>builds.archive.org,maven2</id>
 			<url>http://builds.archive.org/maven2</url>
 		</repository>
+		<repository>
+			<id>sbforge-nexus</id>
+			<url>https://sbforge.org/nexus/content/groups/public</url>
+			<releases><enabled>true</enabled></releases>
+			<snapshots><enabled>true</enabled></snapshots>
+		</repository>
 	</repositories>
 
 	<prerequisites>
@@ -137,22 +143,32 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 		<module>modules</module>
 		<module>engine</module>
 		<module>dist</module>
+		<module>contrib</module>
 	</modules>
 
 
 	<distributionManagement>
-		<repository>
+	<!--	<repository>
 			<id>repository</id>
 			<name>Repository</name>
-			<!--Pass as command-line system property to maven-->
 			<url>${repository.url}</url>
 		</repository>
 		<site>
 			<id>website</id>
 			<name>Website</name>
-			<!--Pass as command-line system property to maven-->
 			<url>${website.url}/projects/${project.artifactId}</url>
-		</site>
+		</site> -->
+		<repository>
+            <id>sbforge-nexus</id>
+            <name>SBForge Nexus Repo manager</name>
+            <url>https://sbforge.org/nexus/content/repositories/releases</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>sbforge-nexus</id>
+            <name>SBForge Nexus Repo manager</name>
+            <url>https://sbforge.org/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
 	</distributionManagement>
 
 	<developers>
@@ -380,7 +396,13 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
-
+			<plugin>
+			                <artifactId>maven-release-plugin</artifactId>
+			                <version>2.5.2</version>
+			                <configuration>
+			                    <autoVersionSubmodules>true</autoVersionSubmodules>
+			                </configuration>
+			            </plugin>
 		</plugins>
 	</build>
 	<properties>
