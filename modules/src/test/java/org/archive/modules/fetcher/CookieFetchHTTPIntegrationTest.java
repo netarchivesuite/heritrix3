@@ -29,10 +29,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import junit.extensions.TestSetup;
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
 import org.apache.commons.collections.Closure;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.io.FileUtils;
@@ -45,6 +41,7 @@ import org.archive.modules.net.CrawlServer;
 import org.archive.modules.net.ServerCache;
 import org.archive.spring.ConfigFile;
 import org.archive.spring.ConfigPath;
+import org.archive.util.KeyTool;
 import org.archive.util.TmpDirTestCase;
 import org.mortbay.jetty.Request;
 import org.mortbay.jetty.Server;
@@ -53,9 +50,11 @@ import org.mortbay.jetty.security.SslSocketConnector;
 import org.mortbay.jetty.servlet.SessionHandler;
 import org.mortbay.log.Log;
 
-import sun.security.tools.KeyTool;
-
 import com.google.common.io.Files;
+
+import junit.extensions.TestSetup;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
 @SuppressWarnings("restriction")
 public class CookieFetchHTTPIntegrationTest extends ProcessorTestBase {
