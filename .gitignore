@@ -10,3 +10,9 @@ contrib/target
 */.classpath
 */.project
 */.settings
+
+# Intellij project files
+*.iml
+*.ipr
+*.iws
+.idea/
