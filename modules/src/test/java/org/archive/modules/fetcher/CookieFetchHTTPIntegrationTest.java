@@ -56,6 +56,7 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+@SuppressWarnings("restriction")
 public class CookieFetchHTTPIntegrationTest extends ProcessorTestBase {
 
     protected static class TestHandler extends SessionHandler {

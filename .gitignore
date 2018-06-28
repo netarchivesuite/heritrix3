@@ -10,11 +10,9 @@ contrib/target
 */.classpath
 */.project
 */.settings
+
+# Intellij project files
+*.iml
+*.ipr
+*.iws
 .idea/
-commons/heritrix-commons.iml
-dist/heritrix (1) (org.archive.heritrix).iml
-engine/heritrix-engine.iml
-heritrix (2) (org.archive).iml
-modules/heritrix-modules.iml
-contrib/heritrix-contrib.iml
-dist/heritrix.iml
