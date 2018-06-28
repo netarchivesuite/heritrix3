@@ -18,6 +18,10 @@
 			<version>${project.version}</version>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.archive.heritrix</groupId>
+			<artifactId>heritrix-contrib</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
