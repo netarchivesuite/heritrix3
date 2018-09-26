@@ -20,6 +20,11 @@ package org.archive.modules.deciderules;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -87,11 +92,20 @@ public class MatchesListRegexDecideRule extends PredicatedDecideRule {
             return false;
         }
 
-        String str = uri.toString();
+        final String str = uri.toString();
         boolean listLogicOR = getListLogicalOr();
 
-        for (Pattern p: regexes) {
-            boolean matches = p.matcher(str).matches();
+        for (final Pattern p: regexes) {
+
+            CompletableFuture<Boolean> matchesFuture = CompletableFuture.supplyAsync(() -> p.matcher(str).matches());
+
+            boolean matches = false;
+            try {
+                matches = matchesFuture.get(5, TimeUnit.MINUTES);
+            } catch (Exception e) {
+                logger.info("Timeout matching regex '" + p + "' to url '" + str + "'");
+            }
+
 
             if (logger.isLoggable(Level.FINER)) {
                 logger.finer("Tested '" + str + "' match with regex '" +
