@@ -27,6 +27,10 @@
 					<artifactId>junit</artifactId>
 					<groupId>junit</groupId>
 				</exclusion>
+				<!--<exclusion>
+					<artifactId>org.slf4j</artifactId>
+					<groupId>slf4j-api</groupId>
+				</exclusion>  -->
 			</exclusions>
 		</dependency>
 		<dependency>
