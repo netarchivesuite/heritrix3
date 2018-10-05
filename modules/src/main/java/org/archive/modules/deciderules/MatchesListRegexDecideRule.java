@@ -45,16 +45,12 @@ public class MatchesListRegexDecideRule extends PredicatedDecideRule {
     private static final long serialVersionUID = 3L;
     private static final Logger logger =
         Logger.getLogger(MatchesListRegexDecideRule.class.getName());
-
-    protected long timeoutPerRegexSeconds = 20L;
-
-    public long getTimeoutPerRegexSeconds() {
-        return timeoutPerRegexSeconds;
+    
+    {
+        setTimeoutPerRegexSeconds(20L);
     }
-
-    public void setTimeoutPerRegexSeconds(long timeoutPerRegexSeconds) {
-        this.timeoutPerRegexSeconds = timeoutPerRegexSeconds;
-    }
+    public long getTimeoutPerRegexSeconds() { return (Long) kp.get("timeout");}
+    public void setTimeoutPerRegexSeconds(long timeoutPerRegexSeconds) { kp.put("timeout", timeoutPerRegexSeconds);}
 
     /**
      * The list of regular expressions to evalute against the URI.
@@ -111,7 +107,7 @@ public class MatchesListRegexDecideRule extends PredicatedDecideRule {
 
             boolean matches = false;
             try {
-                matches = matchesFuture.get(timeoutPerRegexSeconds, TimeUnit.SECONDS);
+                matches = matchesFuture.get(getTimeoutPerRegexSeconds(), TimeUnit.SECONDS);
             } catch (Exception e) {
                 logger.info("Timeout matching regex '" + p + "' to url '" + str + "'");
             }
