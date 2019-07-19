@@ -176,6 +176,13 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
         </snapshotRepository>
 	</distributionManagement>
 
+	<scm>
+   <url>https://github.com/netarchivesuite/heritrix3</url>
+   <connection>scm:git:https://github.com/netarchivesuite/heritrix3.git</connection>
+   <developerConnection>scm:git:git@github.com:netarchivesuite/heritrix3.git</developerConnection>
+   <tag>HEAD</tag>
+ </scm>
+
 	<developers>
 		<developer>
 			<name>Gordon Mohr</name>
