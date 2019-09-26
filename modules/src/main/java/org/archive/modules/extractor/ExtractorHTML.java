@@ -31,6 +31,7 @@ import java.util.regex.Matcher;
 
 import org.apache.commons.httpclient.URIException;
 import org.archive.io.ReplayCharSequence;
+import org.archive.modules.CoreAttributeConstants;
 import org.archive.modules.CrawlMetadata;
 import org.archive.modules.CrawlURI;
 import org.archive.modules.net.RobotsPolicy;
@@ -57,7 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * TODO: Compare against extractors based on HTML parsing libraries for 
  * accuracy, completeness, and speed.
  * 
- * @contributor gojomo
+ * @author gojomo
  */
 public class ExtractorHTML extends ContentExtractor implements InitializingBean {
 
@@ -421,9 +422,11 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
                     // other HREFs treated as links
                     processLink(curi, value, context);
                 }
-                if (elementStr.equalsIgnoreCase(BASE)) {
+                // Set the relative or absolute base URI if it's not already been modified. 
+                // See https://github.com/internetarchive/heritrix3/pull/209
+                if (elementStr.equalsIgnoreCase(BASE) && !curi.containsDataKey(CoreAttributeConstants.A_HTML_BASE)) {
                     try {
-                        UURI base = UURIFactory.getInstance(value.toString());
+                        UURI base = UURIFactory.getInstance(curi.getUURI(),value.toString());
                         curi.setBaseURI(base);
                     } catch (URIException e) {
                         logUriError(e, curi.getUURI(), value);
@@ -578,7 +581,7 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
     }
 
     /**
-     * Consider a query-string-like collections of key=value[&key=value]
+     * Consider a query-string-like collections of key=value[&amp;key=value]
      * pairs for URI-like strings in the values. Where URI-like strings are
      * found, add as discovered outlink. 
      * 
@@ -606,11 +609,6 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
     /**
      * Consider whether a given string is URI-like. If so, add as discovered 
      * outlink. 
-     * 
-     * @param curi origin CrawlURI
-     * @param queryString query-string-like string
-     * @param valueContext page context where found
-
      */
     protected void considerIfLikelyUri(CrawlURI curi, CharSequence candidate, 
             CharSequence valueContext, Hop hop) {
@@ -686,13 +684,24 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 
             logger.fine("Found srcset listing: " + value.toString());
 
+<<<<<<< HEAD
             String[] links = value.toString().split(",");
             for (int i=0; i < links.length; i++){
                 String link = links[i].trim().split(" +")[0];
+=======
+            Matcher matcher = TextUtils.getMatcher("[\\s,]*(\\S*[^,\\s])(?:\\s(?:[^,(]+|\\([^)]*(?:\\)|$))*)?", value);
+            while (matcher.lookingAt()) {
+                String link = matcher.group(1);
+                matcher.region(matcher.end(), matcher.regionEnd());
+>>>>>>> feea47b2c74b12f9ec7a87e99bc0a7b79366b33d
                 logger.finer("Found " + link + " adding to outlinks.");
                 addLinkFromString(curi, link, context, hop);
                 numberOfLinksExtracted.incrementAndGet();
             }
+<<<<<<< HEAD
+=======
+            TextUtils.recycleMatcher(matcher);
+>>>>>>> feea47b2c74b12f9ec7a87e99bc0a7b79366b33d
         } else {
             addLinkFromString(curi,
                 (value instanceof String)?

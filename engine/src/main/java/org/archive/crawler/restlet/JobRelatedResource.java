@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.apache.commons.lang.StringUtils;
 import org.archive.crawler.framework.CrawlJob;
@@ -39,8 +40,8 @@ import org.archive.crawler.framework.Engine;
 import org.archive.util.TextUtils;
 import org.restlet.Context;
 import org.restlet.data.Reference;
-import org.restlet.data.Request;
-import org.restlet.data.Response;
+import org.restlet.Request;
+import org.restlet.Response;
 import org.restlet.resource.ResourceException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapperImpl;
@@ -50,22 +51,26 @@ import org.springframework.beans.BeansException;
  * Shared superclass for resources that represent functional aspects
  * of a CrawlJob.
  * 
- * @contributor Gojomo
- * @contributor nlevitt
+ * @author Gojomo
+ * @author nlevitt
  */
 public abstract class JobRelatedResource extends BaseResource {
-    protected CrawlJob cj; 
+    private final static Logger LOGGER =
+            Logger.getLogger(JobRelatedResource.class.getName());
+
+    protected CrawlJob cj;
 
     protected IdentityHashMap<Object, String> beanToNameMap;
-    
-    public JobRelatedResource(Context ctx, Request req, Response res) throws ResourceException {
-        super(ctx, req, res);
+
+    @Override
+    public void init(Context ctx, Request req, Response res) {
+        super.init(ctx, req, res);
         cj = getEngine().getJob((String)req.getAttributes().get("job"));
-        if(cj==null) {
+        if(cj == null) {
             throw new ResourceException(404);
         }
     }
-    
+
     protected Engine getEngine() {
         return ((EngineApplication)getApplication()).getEngine();
     }
@@ -147,8 +152,12 @@ public abstract class JobRelatedResource extends BaseResource {
                 }
             }
             if (obj instanceof Iterable<?>) {
-                for (Object next : (Iterable<?>) obj) {
-                    addPresentableNestedNames(namedBeans, next, alreadyWritten);
+                try {
+                    for (Object next : (Iterable<?>) obj) {
+                        addPresentableNestedNames(namedBeans, next, alreadyWritten);
+                    }
+                } catch (Exception e) {
+                    LOGGER.warning("problem iterating over " + obj + " - " + e);
                 }
             }
         }
@@ -178,7 +187,7 @@ public abstract class JobRelatedResource extends BaseResource {
      *            field name for object
      * @param object
      *            object to make presentable map for
-     * @param beanPathPrefix
+     * @param beanPath
      *            beanPath prefix to apply to sub fields browse links
      * @return the presentable Map
      */
@@ -286,8 +295,12 @@ public abstract class JobRelatedResource extends BaseResource {
                     beanPathPrefix = beanPath + "[";
                 }
                 // TODO: protect against overlong content?
-                propValues.add(makePresentableMapFor(i + "", list.get(i),
-                        alreadyWritten, beanPathPrefix));
+                try {
+                    propValues.add(makePresentableMapFor(i + "", list.get(i),
+                            alreadyWritten, beanPathPrefix));
+                } catch (Exception e) {
+                    LOGGER.warning(list + ".get(" + i + ") -" + e);
+                }
             }
         } else if (object instanceof Iterable<?>) {
             for (Object next : (Iterable<?>) object) {
@@ -316,7 +329,6 @@ public abstract class JobRelatedResource extends BaseResource {
     /**
      * Get and modify the PropertyDescriptors associated with the BeanWrapper.
      * @param bwrap
-     * @return
      */
     protected PropertyDescriptor[] getPropertyDescriptors(BeanWrapperImpl bwrap) {
         PropertyDescriptor[] descriptors = bwrap.getPropertyDescriptors();

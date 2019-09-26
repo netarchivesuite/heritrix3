@@ -67,7 +67,6 @@ public class FetchHistoryProcessor extends Processor {
     @Override
     protected void innerProcess(CrawlURI puri) throws InterruptedException {
         CrawlURI curi = (CrawlURI) puri;
-        curi.addPersistentDataMapKey(A_FETCH_HISTORY);
         HashMap<String, Object> latestFetch = new HashMap<String, Object>();
 
         // save status
@@ -107,15 +106,17 @@ public class FetchHistoryProcessor extends Processor {
         curi.getData().put(A_FETCH_HISTORY, history);
 
         if (curi.getFetchStatus() == 304) {
-            // Copy forward the content digest as the current digest is simply of an empty response
-            latestFetch.put(A_CONTENT_DIGEST, history[1].get(A_CONTENT_DIGEST));
-            // Create revisit profile
-            curi.getAnnotations().add("duplicate:server-not-modified");
-            ServerNotModifiedRevisit revisit = new ServerNotModifiedRevisit();
-            revisit.setETag((String) latestFetch.get(A_ETAG_HEADER));
-            revisit.setLastModified((String) latestFetch.get(A_LAST_MODIFIED_HEADER));
-            revisit.setPayloadDigest((String)latestFetch.get(A_CONTENT_DIGEST));
-            curi.setRevisitProfile(revisit);
+            if( history.length >= 2 && history[1] != null && history[1].containsKey(A_CONTENT_DIGEST)) {
+                // Copy forward the content digest as the current digest is simply of an empty response
+                latestFetch.put(A_CONTENT_DIGEST, history[1].get(A_CONTENT_DIGEST));
+                // Create revisit profile
+                curi.getAnnotations().add("duplicate:server-not-modified");
+                ServerNotModifiedRevisit revisit = new ServerNotModifiedRevisit();
+                revisit.setETag((String) latestFetch.get(A_ETAG_HEADER));
+                revisit.setLastModified((String) latestFetch.get(A_LAST_MODIFIED_HEADER));
+                revisit.setPayloadDigest((String)latestFetch.get(A_CONTENT_DIGEST));
+                curi.setRevisitProfile(revisit);
+            }
         } else if (hasIdenticalDigest(curi)) {
             curi.getAnnotations().add("duplicate:digest");
             IdenticalPayloadDigestRevisit revisit = 

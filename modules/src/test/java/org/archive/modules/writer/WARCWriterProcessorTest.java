@@ -50,8 +50,8 @@ import org.archive.util.TmpDirTestCase;
 /**
  * Unit test for {@link WARCWriterProcessor}.
  *
- * @contributor pjack
- * @contributor kenji
+ * @author pjack
+ * @author kenji
  */
 public class WARCWriterProcessorTest extends ProcessorTestBase {
 
@@ -185,8 +185,7 @@ public class WARCWriterProcessorTest extends ProcessorTestBase {
         assertEquals(4, wwp.getStats().get("totals").get("numRecords").get());
         assertEquals(responseBytes.length, wwp.getStats().get("response").get("contentBytes").get());
 
-        // XXX fails currently, needs https://github.com/iipc/webarchive-commons/pull/51
-        // assertEquals(warc.length(), wwp.getStats().get("totals").get("sizeOnDisk").get());
+        assertEquals(warc.length(), wwp.getStats().get("totals").get("sizeOnDisk").get());
     }
 
     /**
@@ -207,7 +206,7 @@ public class WARCWriterProcessorTest extends ProcessorTestBase {
     }
     /**
      * replacement WriterPool that injects FailWARCWriter
-     * @contributor kenji
+     * @author kenji
      */
     public class TestWriterPool extends WriterPool {
         public TestWriterPool(WriterPoolSettings settings, int maxActive) {

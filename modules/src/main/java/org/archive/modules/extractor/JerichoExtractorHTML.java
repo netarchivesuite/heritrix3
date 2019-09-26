@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
+import org.archive.modules.CoreAttributeConstants;
 import org.archive.modules.CrawlURI;
 import org.archive.modules.net.RobotsPolicy;
 import org.archive.net.UURI;
@@ -142,9 +143,11 @@ public class JerichoExtractorHTML extends ExtractorHTML {
                 // other HREFs treated as links
                 processLink(curi, attrValue, context);
             }
-            if ("base".equals(elementName)) {
+            // Set the relative or absolute base URI if it's not already been modified. 
+            // See https://github.com/internetarchive/heritrix3/pull/209
+            if ("base".equals(elementName) && !curi.containsDataKey(CoreAttributeConstants.A_HTML_BASE)) {
                 try {
-                    UURI base = UURIFactory.getInstance(attrValue);
+                    UURI base = UURIFactory.getInstance(curi.getUURI(),attrValue);
                     curi.setBaseURI(base);
                 } catch (URIException e) {
                     logUriError(e, curi.getUURI(), attrValue);
@@ -192,6 +195,13 @@ public class JerichoExtractorHTML extends ExtractorHTML {
                 hopType = Hop.EMBED;
 
             processEmbed(curi, attrValue, context, hopType);
+        }
+        // SRCSET
+        if (((attr = attributes.get("srcset")) != null) &&
+                ((attrValue = attr.getValue()) != null)) {
+            codebase = StringEscapeUtils.unescapeHtml(attrValue);
+            CharSequence context = elementContext(elementName, attr.getKey());
+            processEmbed(curi, codebase, context);
         }
         // CODEBASE
         if (((attr = attributes.get("codebase")) != null) &&

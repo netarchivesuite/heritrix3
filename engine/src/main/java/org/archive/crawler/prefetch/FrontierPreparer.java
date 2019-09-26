@@ -33,19 +33,18 @@ import org.archive.modules.CrawlURI;
 import org.archive.modules.SchedulingConstants;
 import org.archive.modules.canonicalize.RulesCanonicalizationPolicy;
 import org.archive.modules.canonicalize.UriCanonicalizationPolicy;
-import org.archive.net.UURI;
 import org.archive.spring.KeyedProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Processor to preload URI with as much precalculated policy-based 
- * info as possible before it reaches frontier criticial sections.
+ * info as possible before it reaches frontier critical sections.
  * 
  * Frontiers also maintain a direct reference to this class, in case
  * they need to perform remedial preparation for URIs that do not
  * pass through this processor on the CandidateChain.
  * 
- * @contributor gojomo
+ * @author gojomo
  */
 public class FrontierPreparer extends Scoper {
     @SuppressWarnings("unused")
@@ -184,7 +183,6 @@ public class FrontierPreparer extends Scoper {
      * for the given CrawlURI
      * 
      * @param curi
-     * @return
      */
     protected int getSchedulingDirective(CrawlURI curi) {
         if(StringUtils.isNotEmpty(curi.getPathFromSeed())) {
@@ -197,7 +195,7 @@ public class FrontierPreparer extends Scoper {
         if (getPreferenceDepthHops() == 0) {
             return HIGH;
             // this implies seed redirects are treated as path
-            // length 1, which I belive is standard.
+            // length 1, which I believe is standard.
             // curi.getPathFromSeed() can never be null here, because
             // we're processing a link extracted from curi
         } else if (getPreferenceDepthHops() > 0 && 
@@ -222,7 +220,7 @@ public class FrontierPreparer extends Scoper {
     }
     /**
      * Canonicalize passed CrawlURI. This method differs from
-     * {@link #canonicalize(UURI)} in that it takes a look at
+     * {@link #canonicalize(CrawlURI)} in that it takes a look at
      * the CrawlURI context possibly overriding any canonicalization effect if
      * it could make us miss content. If canonicalization produces an URL that
      * was 'alreadyseen', but the entry in the 'alreadyseen' database did
@@ -258,7 +256,7 @@ public class FrontierPreparer extends Scoper {
     }
     
     /**
-     * @param cauri CrawlURI we're to get a key for.
+     * @param curi CrawlURI we're to get a key for.
      * @return a String token representing a queue
      */
     public String getClassKey(CrawlURI curi) {

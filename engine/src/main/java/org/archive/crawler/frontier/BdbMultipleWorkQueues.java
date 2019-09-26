@@ -75,9 +75,6 @@ public class BdbMultipleWorkQueues {
     /**
      * Create the multi queue in the given environment. 
      * 
-     * @param env bdb environment to use
-     * @param classCatalog Class catalog to use.
-     * @param recycle True if we are to reuse db content if any.
      * @throws DatabaseException
      */
     public BdbMultipleWorkQueues(Database db,
@@ -417,7 +414,7 @@ public class BdbMultipleWorkQueues {
      * (1) priorities or precedences over 2^7 (signed byte comparison)
      * (2) ordinals over 2^48
      * 
-     * Package access & static for testing purposes. 
+     * Package access &amp; static for testing purposes. 
      * 
      * @param curi
      * @return a DatabaseEntry key for the CrawlURI
@@ -505,9 +502,9 @@ public class BdbMultipleWorkQueues {
     /**
      * Method used by BdbFrontier during checkpointing.
      * <p>The backing bdbje database has been marked deferred write so we save
-     * on writes to disk.  Means no guarantees disk will have whats in memory
+     * on writes to disk.  Means no guarantees disk will have what's in memory
      * unless a sync is called (Calling sync on the bdbje Environment is not
-     * sufficent).
+     * sufficient).
      * <p>Package access only because only Frontiers of this package would ever
      * need access.
      * @see <a href="http://www.sleepycat.com/jedocs/GettingStartedGuide/DB.html">Deferred Write Databases</a>
@@ -540,7 +537,7 @@ public class BdbMultipleWorkQueues {
      * Add a dummy 'cap' entry at the given insertion key. Prevents
      * 'seeks' to queue heads from holding lock on last item of 
      * 'preceding' queue. See:
-     * http://sourceforge.net/tracker/index.php?func=detail&aid=1262665&group_id=73833&atid=539102
+     * http://sourceforge.net/tracker/index.php?func=detail&amp;aid=1262665&amp;group_id=73833&amp;atid=539102
      * 
      * @param origin key at which to insert the cap
      */

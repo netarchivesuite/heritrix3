@@ -270,6 +270,79 @@ public class ExtractorHTMLTest extends StringExtractorTestBase {
     }
     
     /**
+     * Test that relative base href's are resolved correctly:
+     * 
+     * See 
+     * 
+     * @throws URIException
+     */
+    public void testRelativeBaseHrefRelativeLinks() throws URIException {
+        CrawlURI curi = new CrawlURI(UURIFactory
+                .getInstance("https://www.schmid-gartenpflanzen.de/forum/index.php/mv/msg/7627/216142/0/"));
+        CharSequence cs = "<base href=\"/forum/\"/>\n" + 
+                "<img src=\"index.php/fa/89652/0/\" border=\"0\" alt=\"index.php/fa/89652/0/\" />";
+        getExtractor().extract(curi, cs);
+
+        assertTrue(CollectionUtils.exists(curi.getOutLinks(), new Predicate() {
+            public boolean evaluate(Object object) {
+                return ((CrawlURI) object)
+                        .getURI()
+                        .indexOf(
+                                ".de/forum/index.php/fa/89652/0/") >= 0;
+            }
+        }));
+    }
+
+    
+    /**
+     * Test that the first base href is used:
+     * 
+     * See 
+     * 
+     * @throws URIException
+     */
+    public void testFirstBaseHrefRelativeLinks() throws URIException {
+        CrawlURI curi = new CrawlURI(UURIFactory
+                .getInstance("https://www.schmid-gartenpflanzen.de/forum/index.php/mv/msg/7627/216142/0/"));
+        CharSequence cs = "<base href=\"/first/\"/>\n" + "<base href=\"/forum/\"/>\n" + 
+                "<img src=\"index.php/fa/89652/0/\" border=\"0\" alt=\"index.php/fa/89652/0/\" />";
+        getExtractor().extract(curi, cs);
+
+        assertTrue(CollectionUtils.exists(curi.getOutLinks(), new Predicate() {
+            public boolean evaluate(Object object) {
+                return ((CrawlURI) object)
+                        .getURI()
+                        .indexOf(
+                                ".de/first/index.php/fa/89652/0/") >= 0;
+            }
+        }));
+    }
+
+    /**
+     * Test that absolute base href's are resolved correctly:
+     * 
+     * @throws URIException
+     */
+    public void testAbsoluteBaseHrefRelativeLinks() throws URIException {
+
+        CrawlURI curi = new CrawlURI(UURIFactory
+                .getInstance("https://www.schmid-gartenpflanzen.de/forum/index.php/mv/msg/7627/216142/0/"));
+        CharSequence cs = "<base href=\"https://www.schmid-gartenpflanzen.de/forum/\"/>\n" + 
+                "<img src=\"index.php/fa/89652/0/\" border=\"0\" alt=\"index.php/fa/89652/0/\" />";
+        getExtractor().extract(curi, cs);
+
+        assertTrue(CollectionUtils.exists(curi.getOutLinks(), new Predicate() {
+            public boolean evaluate(Object object) {
+                return ((CrawlURI) object)
+                        .getURI()
+                        .indexOf(
+                                ".de/forum/index.php/fa/89652/0/") >= 0;
+            }
+        }));
+
+    }
+    
+    /**
      * Test if scheme is maintained by speculative hops onto exact 
      * same host
      * 
@@ -329,7 +402,6 @@ public class ExtractorHTMLTest extends StringExtractorTestBase {
     public void testOutLinksWithBaseHref() throws URIException {
         CrawlURI puri = new CrawlURI(UURIFactory
                 .getInstance("http://www.example.com/abc/index.html"));
-        puri.setBaseURI(puri.getUURI());
         CharSequence cs = 
             "<base href=\"http://www.example.com/\">" + 
             "<a href=\"def/another1.html\">" + 
@@ -440,7 +512,11 @@ public class ExtractorHTMLTest extends StringExtractorTestBase {
 
         CharSequence cs = "<img width=\"800\" height=\"1200\" src=\"/images/foo.jpg\" "
                 + "class=\"attachment-full size-full\" alt=\"\" "
+<<<<<<< HEAD
                 + "srcset=\"/images/foo1.jpg 800w, /images/foo2.jpg 480w, /images/foo3.jpg 96w\" "
+=======
+                + "srcset=\"a,b,c,,, /images/foo1.jpg 800w,data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7 700w, /images/foo2.jpg 480w(data:,foo, ,), /images/foo3.jpg 96w(x\" "
+>>>>>>> feea47b2c74b12f9ec7a87e99bc0a7b79366b33d
                 + "sizes=\"(max-width: 800px) 100vw, 800px\">";
 
         getExtractor().extract(curi, cs);
@@ -449,6 +525,11 @@ public class ExtractorHTMLTest extends StringExtractorTestBase {
         Arrays.sort(links);
 
         String[] dest = {
+<<<<<<< HEAD
+=======
+                "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+                "http://www.example.com/a,b,c",
+>>>>>>> feea47b2c74b12f9ec7a87e99bc0a7b79366b33d
                 "http://www.example.com/images/foo.jpg",
                 "http://www.example.com/images/foo1.jpg",
                 "http://www.example.com/images/foo2.jpg",

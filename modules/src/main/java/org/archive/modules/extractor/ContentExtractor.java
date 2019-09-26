@@ -42,9 +42,13 @@ public abstract class ContentExtractor extends Extractor {
 
     /**
      * Determines if links should be extracted from the given URI. This method
-     * performs three checks. The first check runs only if
+     * performs four checks. It first checks if the URI was processed successfully,
+     * i.e. {@link CrawlURI#isSuccess()} returns true. 
+     * 
+     * <p>
+     * The second check runs only if
      * {@link ExtractorParameters#getExtractIndependently()} is false. It checks
-     * {@link ExtractorURI#hasBeenLinkExtracted()} result. If that result is
+     * {@link CrawlURI#hasBeenLinkExtracted()} result. If that result is
      * true, then this method returns false, as some other extractor has claimed
      * that links are already extracted.
      * 
@@ -55,7 +59,7 @@ public abstract class ContentExtractor extends Extractor {
      * this method returns false.
      * 
      * <p>
-     * Finally, this method delegates to {@link #innerExtract(ExtractorURI)} and
+     * Finally, this method delegates to {@link #innerExtract(CrawlURI)} and
      * returns that result.
      * 
      * @param uri
@@ -63,6 +67,9 @@ public abstract class ContentExtractor extends Extractor {
      * @return true if links should be extracted from the URI, false otherwise
      */
     final protected boolean shouldProcess(CrawlURI uri) {
+    	if (!uri.isSuccess()) {
+    		return false;
+    	}
         if (!getExtractorParameters().getExtractIndependently()
                 && uri.hasBeenLinkExtracted()) {
             return false;
@@ -96,7 +103,7 @@ public abstract class ContentExtractor extends Extractor {
     
     /**
      * Actually extracts links.  The given URI will have passed the three
-     * checks described in {@link #shouldProcess(ExtractorURI)}.  Subclasses
+     * checks described in {@link #shouldProcess(CrawlURI)}.  Subclasses
      * should implement this method to discover outlinks in the URI's 
      * content stream.  For instance, {@link ExtractorHTML} extracts links
      * from Anchor tags and so on.

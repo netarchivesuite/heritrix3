@@ -29,17 +29,17 @@ import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.RandomUtils;
+import org.restlet.Request;
+import org.restlet.Response;
 import org.restlet.data.Cookie;
 import org.restlet.data.CookieSetting;
-import org.restlet.data.Request;
-import org.restlet.data.Response;
 import org.restlet.util.Series;
 
 /**
  * Utility for including a brief last-action or background-action 
  * message on web responses. 
  * 
- * @contributor gojomo
+ * @author gojomo
  *
  */
 public class Flash {

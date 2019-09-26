@@ -70,11 +70,11 @@ import org.archive.spring.ConfigPath;
 import org.archive.util.Base32;
 import org.archive.util.Recorder;
 import org.archive.util.TmpDirTestCase;
-import org.mortbay.jetty.Request;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.bio.SocketConnector;
-import org.mortbay.jetty.handler.HandlerCollection;
-import org.mortbay.jetty.servlet.SessionHandler;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.session.SessionHandler;
 
 public class ContentDigestHistoryTest extends TmpDirTestCase {
 
@@ -128,7 +128,18 @@ public class ContentDigestHistoryTest extends TmpDirTestCase {
         return bdb;
     }
 
+    @Override
+    protected void tearDown() throws Exception {
+    	if (bdb != null) {
+    		bdb.close();
+    	}
+    	super.tearDown();
+    }
+
     public void testBasics() throws InterruptedException, IOException {
+        historyStore().store.clear();
+        assertTrue(historyStore().store.isEmpty());
+
         CrawlURI curi1 = new CrawlURI(UURIFactory.getInstance("http://example.org/1"));
         // without Recorder, CrawlURI#getContentLength() returns zero, which makes
         // loader().shoudProcess() return false.
@@ -158,7 +169,8 @@ public class ContentDigestHistoryTest extends TmpDirTestCase {
         assertTrue(curi1.getContentDigestHistory().isEmpty());
 
         storer().process(curi1);
-        assertTrue(historyStore().store.isEmpty());
+        assertTrue("historyStore().store should be empty, but it is: " + historyStore().store,
+                historyStore().store.isEmpty());
         
         curi1.getContentDigestHistory().put(A_ORIGINAL_URL, "http://example.org/original");
         // curi1.getContentDigestHistory().put(A_WARC_RECORD_ID, "<urn:uuid:f00dface-d00d-d00d-d00d-0beefface0ff>");
@@ -225,7 +237,6 @@ public class ContentDigestHistoryTest extends TmpDirTestCase {
 
             fetcher.process(curi1);
             assertEquals(200, curi1.getFetchStatus());
-            assertEquals(141, curi1.getContentSize());
             assertEquals(expectedDigest, curi1.getContentDigestSchemeString());
             assertFalse(curi1.hasContentDigestHistory());
 
@@ -248,7 +259,6 @@ public class ContentDigestHistoryTest extends TmpDirTestCase {
 
             fetcher.process(curi2);
             assertEquals(200, curi1.getFetchStatus());
-            assertEquals(141, curi1.getContentSize());
             assertEquals(expectedDigest, curi1.getContentDigestSchemeString());
             assertFalse(curi2.hasContentDigestHistory());
 
@@ -293,7 +303,6 @@ public class ContentDigestHistoryTest extends TmpDirTestCase {
             assertTrue(recordIterator.hasNext());
             record = recordIterator.next();
             assertEquals(WARCRecordType.response.toString(), record.getHeader().getHeaderValue(HEADER_KEY_TYPE));
-            assertEquals("141", record.getHeader().getHeaderValue(CONTENT_LENGTH));
             assertEquals(expectedDigest, record.getHeader().getHeaderValue(HEADER_KEY_PAYLOAD_DIGEST));
             assertEquals(curi1.getUURI().toString(), record.getHeader().getHeaderValue(HEADER_KEY_URI));
             assertEquals(payloadRecordIdWithBrackets, record.getHeader().getHeaderValue(HEADER_KEY_ID));
@@ -362,10 +371,7 @@ public class ContentDigestHistoryTest extends TmpDirTestCase {
         HandlerCollection handlers = new HandlerCollection();
         handlers.addHandler(new SessionHandler(){
             @Override
-            public void handle(String target, HttpServletRequest request,
-                    HttpServletResponse response, int dispatch) throws IOException,
-                    ServletException {
-
+            public void doHandle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
                 response.setContentType("text/plain;charset=US-ASCII");
                 response.setStatus(HttpServletResponse.SC_OK);
                 response.getOutputStream().write(DEFAULT_PAYLOAD_STRING.getBytes("US-ASCII"));
@@ -376,7 +382,7 @@ public class ContentDigestHistoryTest extends TmpDirTestCase {
         Server server = new Server();
         server.setHandler(handlers);
         
-        SocketConnector sc = new SocketConnector();
+        ServerConnector sc = new ServerConnector(server);
         sc.setHost("127.0.0.1");
         sc.setPort(7777);
         server.addConnector(sc);

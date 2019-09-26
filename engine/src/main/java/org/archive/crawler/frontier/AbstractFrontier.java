@@ -244,7 +244,7 @@ public abstract class AbstractFrontier
     }
     
     /**
-     * @param cauri CrawlURI we're to get a key for.
+     * @param curi CrawlURI we're to get a key for.
      * @return a String token representing a queue
      */
     public String getClassKey(CrawlURI curi) {
@@ -271,6 +271,13 @@ public abstract class AbstractFrontier
     protected AtomicLong totalProcessedBytes = new AtomicLong(0);
 
     /**
+     * count of queues getting readied. per-second count
+     * is useful for determining whether there's enough active
+     * queues.
+     */
+    protected AtomicLong queueReadiedCount = new AtomicLong(0);
+
+    /**
      * Crawl replay logger.
      * 
      * Currently captures Frontier/URI transitions.
@@ -278,12 +285,7 @@ public abstract class AbstractFrontier
      */
     protected FrontierJournal recover = null;
     
-    /**
-     * @param name Name of this frontier.
-     * @param description Description for this frontier.
-     */
     public AbstractFrontier() {
-
     }
 
     /** 
@@ -544,7 +546,7 @@ public abstract class AbstractFrontier
      * Choose a per-classKey queue and enqueue it. If this
      * item has made an unready queue ready, place that 
      * queue on the readyClassQueues queue. 
-     * @param caUri CrawlURI.
+     * @param curi CrawlURI.
      */
     public void receive(CrawlURI curi) {
         sheetOverlaysManager.applyOverlaysTo(curi);
@@ -619,21 +621,27 @@ public abstract class AbstractFrontier
         // Tally per-server, per-host, per-frontier-class running totals
         CrawlServer server = getServerCache().getServerFor(curi.getUURI());
         if (server != null) {
-            server.getSubstats().tally(curi, stage);
-            server.makeDirty(); 
+            synchronized (server) {
+                server.getSubstats().tally(curi, stage);
+                server.makeDirty();
+            }
         }
         try {
             CrawlHost host = getServerCache().getHostFor(curi.getUURI());
             if (host != null) {
-                host.getSubstats().tally(curi, stage);
-                host.makeDirty();
+                synchronized (host) {
+                    host.getSubstats().tally(curi, stage);
+                    host.makeDirty();
+                }
             }
         } catch (Exception e) {
             logger.log(Level.WARNING, "unable to tally host stats for " + curi, e);
         }
         FrontierGroup group = getGroup(curi);
-        group.tally(curi, stage);
-        group.makeDirty(); 
+        synchronized (group) {
+            group.tally(curi, stage);
+            group.makeDirty();
+        }
     }
 
     protected void doJournalFinishedSuccess(CrawlURI c) {
@@ -984,7 +992,7 @@ public abstract class AbstractFrontier
      * format.
      * 
      * @param params JSONObject of options to control import
-     * @see org.archive.crawler.framework.Frontier#importURIs(java.util.Map)
+     * @see org.archive.crawler.framework.Frontier#importURIs(String)
      */
     protected void importURIsSimple(JSONObject params) {
         // Figure the regex to use parsing each line of input stream.
