@@ -124,9 +124,9 @@ import com.sleepycat.je.DatabaseException;
  *   <li> Successfully downloaded documents per host per source
  * </ul>
  *
- * @contributor Parker Thompson
- * @contributor Kristinn Sigurdsson
- * @contributor gojomo
+ * @author Parker Thompson
+ * @author Kristinn Sigurdsson
+ * @author gojomo
  */
 public class StatisticsTracker 
     implements 
@@ -252,7 +252,7 @@ public class StatisticsTracker
     protected long crawlStartTime;
     /** wall-clock time the crawl ended */
     protected long crawlEndTime = -1; // Until crawl ends, this value is -1.
-    /** wall-clock time of last pause, while pause in progres */ 
+    /** wall-clock time of last pause, while pause in progress */
     protected long crawlPauseStarted = 0;
     /** duration tally of all time spent in paused state */ 
     protected long crawlTotalPausedTime = 0;
@@ -273,7 +273,7 @@ public class StatisticsTracker
     }
 
     // TODO: fortify these against key explosion with bigmaps like other tallies
-    /** Keep track of the file types we see (mime type -> count) */
+    /** Keep track of the file types we see (mime type -&gt; count) */
     protected ConcurrentMap<String,AtomicLong> mimeTypeDistribution
      = new ConcurrentHashMap<String, AtomicLong>();
     protected ConcurrentMap<String,AtomicLong> mimeTypeBytes
@@ -460,7 +460,6 @@ public class StatisticsTracker
      * It is recommended that for implementations of this method it be
      * carefully considered if it should be synchronized in whole or in
      * part
-     * @param e Progress statistics event.
      */
     protected synchronized void progressStatisticsEvent() {
         CrawlStatSnapshot snapshot = getSnapshot();
@@ -578,7 +577,7 @@ public class StatisticsTracker
 
     /** Returns a HashMap that contains information about distributions of
      *  encountered mime types.  Key/value pairs represent
-     *  mime type -> count.
+     *  mime type -&lt; count.
      * <p>
      * <b>Note:</b> All the values are wrapped with a {@link AtomicLong AtomicLong}
      * @return mimeTypeDistribution
@@ -671,7 +670,6 @@ public class StatisticsTracker
      * 
      * <b>Note: </b> All the values are wrapped with a
      * {@link AtomicLong AtomicLong}
-     * @return 
      * 
      * @return statusCodeDistribution
      */
@@ -883,11 +881,13 @@ public class StatisticsTracker
     protected File writeReportFile(Report report, boolean force) {
         File f = new File(getReportsDir().getFile(), report.getFilename());
         
-        if(f.exists() && !controller.isRunning() && controller.hasStarted() && !force) {
+        if(f.exists() && !controller.isRunning() && controller.hasStarted() && !force
+        	&& !(report instanceof CrawlSummaryReport)) {
             // controller already started and stopped 
             // and file exists
             // and force not requested
             // so, don't overwrite
+            // except for crawlReport
             logger.info("reusing report: " + f.getAbsolutePath());
             return f;
         }

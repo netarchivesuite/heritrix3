@@ -200,7 +200,6 @@ implements Lifecycle, Checkpointable, BeanNameAware, DisposableBean {
 
     /**
      * Method shared by constructors.
-     * @param env Environment to use.
      * @throws DatabaseException
      */
     protected void initialize(Database db) throws DatabaseException {
@@ -218,7 +217,6 @@ implements Lifecycle, Checkpointable, BeanNameAware, DisposableBean {
     /**
      * Call after deserializing an instance of this class.  Will open the
      * already seen in passed environment.
-     * @param env DB Environment to use.
      * @throws DatabaseException
      */
     public void reopen(Database db)
@@ -245,7 +243,7 @@ implements Lifecycle, Checkpointable, BeanNameAware, DisposableBean {
         }
         if (env != null) {
             try {
-                // This sync flushes whats in RAM. Its expensive operation.
+                // This sync flushes what's in RAM. Its expensive operation.
                 // Without, data can be lost. Not for transactional operation.
                 env.sync();
             } catch (DatabaseException e) {

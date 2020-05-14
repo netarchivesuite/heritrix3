@@ -28,7 +28,7 @@ import org.archive.modules.CrawlURI;
  * Rule applies the configured decision (default REJECT) for any URI which 
  * has a URI-scheme NOT contained in the configured Set. 
  *
- * @contributor gojomo
+ * @author gojomo
  */
 public class SchemeNotInSetDecideRule extends PredicatedDecideRule {
     private static final long serialVersionUID = 3L;
@@ -38,8 +38,7 @@ public class SchemeNotInSetDecideRule extends PredicatedDecideRule {
     }
     
     /**
-     * Usual constructor. 
-     * @param name Name of this DecideRule.
+     * Usual constructor.
      */
     public SchemeNotInSetDecideRule() {
     }
@@ -48,7 +47,7 @@ public class SchemeNotInSetDecideRule extends PredicatedDecideRule {
     protected Set<String> schemes = new HashSet<String>(); 
     {
         // default set are those schemes Heritrix supports in usual configuration
-        schemes.addAll(Arrays.asList(new String[] {"http","https","ftp","dns","whois"}));
+        schemes.addAll(Arrays.asList(new String[] {"http","https","ftp","dns","whois", "sftp"}));
     }
     public Set<String> getSchemes() {
         return schemes;

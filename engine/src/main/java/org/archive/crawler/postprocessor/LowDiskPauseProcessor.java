@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * disk space and pause the crawl if free space on  monitored 
  * filesystems falls below certain thresholds.
  * 
- * @deprecated Is highly system dependant. 
+ * @deprecated Is highly system dependent. 
  *             Use {@link org.archive.crawler.monitor.DiskSpaceMonitor} instead.
  */
 @Deprecated
@@ -107,9 +107,6 @@ public class LowDiskPauseProcessor extends Processor {
     public static final Pattern AVAILABLE_EXTRACTOR = 
         Pattern.compile("(?m)\\s(\\d+)\\s+\\d+%\\s+(\\S+)$");
     
-    /**
-     * @param name Name of this writer.
-     */
     public LowDiskPauseProcessor() {
     } 
     

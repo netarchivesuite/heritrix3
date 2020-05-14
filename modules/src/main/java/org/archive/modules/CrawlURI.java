@@ -31,9 +31,6 @@ import static org.archive.modules.CoreAttributeConstants.A_HTTP_RESPONSE_HEADERS
 import static org.archive.modules.CoreAttributeConstants.A_NONFATAL_ERRORS;
 import static org.archive.modules.CoreAttributeConstants.A_PREREQUISITE_URI;
 import static org.archive.modules.CoreAttributeConstants.A_SOURCE_TAG;
-import static org.archive.modules.CoreAttributeConstants.A_SUBMIT_DATA;
-import static org.archive.modules.CoreAttributeConstants.A_SUBMIT_ENCTYPE;
-import static org.archive.modules.CoreAttributeConstants.A_WARC_RESPONSE_HEADERS;
 import static org.archive.modules.SchedulingConstants.NORMAL;
 import static org.archive.modules.fetcher.FetchStatusCodes.S_BLOCKED_BY_CUSTOM_PROCESSOR;
 import static org.archive.modules.fetcher.FetchStatusCodes.S_BLOCKED_BY_USER;
@@ -60,7 +57,6 @@ import static org.archive.modules.fetcher.FetchStatusCodes.S_TOO_MANY_RETRIES;
 import static org.archive.modules.fetcher.FetchStatusCodes.S_UNATTEMPTED;
 import static org.archive.modules.fetcher.FetchStatusCodes.S_UNFETCHABLE_URI;
 import static org.archive.modules.recrawl.RecrawlAttributeConstants.A_CONTENT_DIGEST_HISTORY;
-import static org.archive.modules.recrawl.RecrawlAttributeConstants.A_FETCH_HISTORY;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -76,7 +72,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -108,8 +103,7 @@ import org.json.JSONObject;
  * <p>Core state is in instance variables but a flexible
  * attribute list is also available. Use this 'bucket' to carry
  * custom processing extracted data and state across CrawlURI
- * processing.  See the {@link #putString(String, String)},
- * {@link #getString(String)}, etc.
+ * processing.  See {@link #getData()}, etc.
  *
  * <p>
  * Note: getHttpMethod() has been removed starting with Heritrix 3.3.0. HTTP
@@ -127,6 +121,8 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
         Logger.getLogger(CrawlURI.class.getName());
 
     public static final int UNCALCULATED = -1;
+    /** fetch history array */
+    public static final String A_FETCH_HISTORY = "fetch-history";
     
     public static enum FetchType { HTTP_GET, HTTP_POST, UNKNOWN };
 
@@ -228,7 +224,7 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
 
     /**
      * True if this CrawlURI has been deemed a prerequisite by the
-     * {@link org.archive.crawler.prefetch.PreconditionEnforcer}.
+     * org.archive.crawler.prefetch.PreconditionEnforcer.
      *
      * This flag is used at least inside in the precondition enforcer so that
      * subsequent prerequisite tests know to let this CrawlURI through because
@@ -249,15 +245,6 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
      * buggy
      */
     protected long ordinal;
-    
-    /**
-     * Array to hold keys of data members that persist across URI processings.
-     * Any key mentioned in this list will not be cleared out at the end
-     * of a pass down the processing chain.
-     */
-    private static final Collection<String> persistentKeys
-     = new CopyOnWriteArrayList<String>(
-            new String [] {A_CREDENTIALS_KEY, A_HTTP_AUTH_CHALLENGES, A_SUBMIT_DATA, A_WARC_RESPONSE_HEADERS, A_ANNOTATIONS, A_SUBMIT_ENCTYPE});
 
     /** maximum length for pathFromSeed/hopsPath; longer truncated with leading counter **/ 
     private static final int MAX_HOPS_DISPLAYED = 50;
@@ -529,7 +516,7 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
      * A prerequisite is a URI that must be crawled before this URI can be
      * crawled.
      *
-     * @param link Link to set as prereq.
+     * @param pre Link to set as prereq.
      */
     public void setPrerequisiteUri(CrawlURI pre) {
         getData().put(A_PREREQUISITE_URI, pre);
@@ -655,7 +642,7 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
      * 
      * This value is consulted in reporting/logging/writing-decisions.
      * 
-     * @see #setContentSize()
+     * @see #setContentSize(long)
      * @return contentSize
      */
     public long getContentSize(){
@@ -876,8 +863,6 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
         this.contentLength = UNCALCULATED;
         // Clear 'links extracted' flag.
         this.linkExtractorFinished = false;
-        // Clean the data map of all but registered permanent members.
-        this.data = getPersistentDataMap();
         
         extraInfo = null;
         outLinks = null;
@@ -886,23 +871,6 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
         
         // XXX er uh surprised this wasn't here before?
         fetchType = FetchType.UNKNOWN;
-    }
-    
-    public Map<String,Object> getPersistentDataMap() {
-        if (data == null) {
-            return null;
-        }
-        Map<String,Object> result = new HashMap<String,Object>(getData());
-        Set<String> retain = new HashSet<String>(persistentKeys);
-        
-        if (containsDataKey(A_HERITABLE_KEYS)) {
-            @SuppressWarnings("unchecked")
-            HashSet<String> heritable = (HashSet<String>)getData().get(A_HERITABLE_KEYS);
-            retain.addAll(heritable);
-        }
-        
-        result.keySet().retainAll(retain);
-        return result;
     }
 
     /**
@@ -981,7 +949,7 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
      * Set the retained content-digest value (usu. SHA1). 
      * 
      * @param digestValue
-     * @deprecated Use {@link #setContentDigest(String scheme, byte[])}
+     * @deprecated Use {@link #setContentDigest(String, byte[])}
      */
     public void setContentDigest(byte[] digestValue) {
         setContentDigest("SHA1", digestValue);
@@ -1132,39 +1100,6 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
             return getUURI();
         }
         return (UURI)getData().get(A_HTML_BASE);
-    }
-    
-    /**
-     * Add the key of  items you want to persist across
-     * processings.
-     * @param key Key to add.
-     */
-    public static Collection<String> getPersistentDataKeys() {
-        return persistentKeys;
-    }
-
-    public void addPersistentDataMapKey(String s) {
-        if (!persistentKeys.contains(s)) {
-            addDataPersistentMember(s);
-        }
-    }
-    
-    /**
-     * Add the key of data map items you want to persist across
-     * processings.
-     * @param key Key to add.
-     */
-    public static void addDataPersistentMember(String key) {
-        persistentKeys.add(key);
-    }
-    
-    /**
-     * Remove the key from those data map members persisted. 
-     * @param key Key to remove.
-     * @return True if list contained the element.
-     */
-    public static boolean removeDataPersistentMember(String key) {
-        return persistentKeys.remove(key);
     }
 
     private void writeObject(ObjectOutputStream stream) throws IOException {
@@ -1629,7 +1564,6 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
      * 
      * @param pathFromSeed
      * @param hopChar
-     * @return
      */
     public static String extendHopsPath(String pathFromSeed, char hopChar) {
         if(pathFromSeed.length()<MAX_HOPS_DISPLAYED) {
@@ -1643,12 +1577,6 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
     /**
      * Utility method for creation of CrawlURIs found extracting
      * links from this CrawlURI.
-     * @param baseUURI BaseUURI for <code>link</code>.
-     * TODO: Fix JavaDoc
-     * @param scheduling How new CandidateURI should be scheduled.
-     * @param seed True if this CandidateURI is a seed.
-     * @return New candidateURI wrapper around <code>link</code>.
-     * @throws URIException
      */
     public CrawlURI createCrawlURI(UURI destination, LinkContext context, Hop hop,
         int scheduling, boolean seed)
@@ -1790,9 +1718,7 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
         return containsDataKey(A_FORCE_RETIRE) 
          && (Boolean)getData().get(A_FORCE_RETIRE);
     }
-    
-    
-    
+
     protected JSONObject extraInfo;
 
     public JSONObject getExtraInfo() {
@@ -1834,10 +1760,6 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
     /**
      * Do all actions associated with setting a <code>CrawlURI</code> as
      * requiring a prerequisite.
-     *
-     * @param lastProcessorChain Last processor chain reference.  This chain is
-     * where this <code>CrawlURI</code> goes next.
-     * @param preq Object to set a prerequisite.
      * @return the newly created prerequisite CrawlURI
      * @throws URIException
      */
@@ -1905,6 +1827,10 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
     public HashMap<String, Object>[] getFetchHistory() {
         return (HashMap<String,Object>[]) getData().get(A_FETCH_HISTORY);
     }
+
+    public void setFetchHistory(Map<String, Object>[] history) {
+        getData().put(A_FETCH_HISTORY, history);
+    }
         
     public HashMap<String, Object> getContentDigestHistory() {
         @SuppressWarnings("unchecked")
@@ -1924,7 +1850,6 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
     
     /**
      * Indicates if this CrawlURI object has been deemed a revisit.
-     * @return 
      */
     public boolean isRevisit() {
     	return revisitProfile!=null;

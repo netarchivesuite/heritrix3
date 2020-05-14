@@ -27,6 +27,7 @@ import java.util.concurrent.BlockingQueue;
 import javax.management.openmbean.CompositeData;
 
 import org.archive.crawler.frontier.FrontierJournal;
+import org.archive.crawler.reporting.StatisticsTracker;
 import org.archive.crawler.frontier.WorkQueue;
 import org.archive.modules.CrawlURI;
 import org.archive.modules.deciderules.DecideRule;
@@ -65,8 +66,7 @@ import org.springframework.context.Lifecycle;
  * <p>The methods defined in this interface are those required to get URIs for
  * processing, report the results of processing back (ToeThreads) and to get
  * access to various statistical data along the way. The statistical data is
- * of interest to {@link org.archive.crawler.framework.StatisticsTracker
- * Statistics Tracking} modules. A couple of additional methods are provided
+ * of interest to {@link StatisticsTracker} modules. A couple of additional methods are provided
  * to be able to inspect and manipulate the Frontier at runtime.
  *
  * <p>The statistical data exposed by this interface is:
@@ -77,7 +77,6 @@ import org.springframework.context.Lifecycle;
  *     <li> {@link #succeededFetchCount() Successfully processed URIs}
  *     <li> {@link #failedFetchCount() Failed to process URIs}
  *     <li> {@link #disregardedUriCount() Disregarded URIs}
- *     <li> {@link #totalBytesWritten() Total bytes written}
  * </ul>
  *
  * <p>In addition the frontier may optionally implement an interface that
@@ -89,27 +88,17 @@ import org.springframework.context.Lifecycle;
  * statistics modules or other interested observers to collect info
  * about each completed URI's processing.
  *
- * <p>All URI Frontiers inherit from
- * {@link org.archive.crawler.settings.ModuleType ModuleType}
- * and therefore creating settings follows the usual pattern of pluggable modules
- * in Heritrix.
- *
  * @author Gordon Mohr
  * @author Kristinn Sigurdsson
  *
  * @see org.archive.crawler.framework.CrawlController
- * @see org.archive.crawler.framework.CrawlController#fireCrawledURIDisregardEvent(CrawlURI)
- * @see org.archive.crawler.framework.CrawlController#fireCrawledURIFailureEvent(CrawlURI)
- * @see org.archive.crawler.framework.CrawlController#fireCrawledURINeedRetryEvent(CrawlURI)
- * @see org.archive.crawler.framework.CrawlController#fireCrawledURISuccessfulEvent(CrawlURI)
- * @see org.archive.crawler.framework.StatisticsTracker
+ * @see StatisticsTracker
  * @see org.archive.crawler.framework.ToeThread
- * @see org.archive.crawler.settings.ModuleType
  */
 public interface Frontier extends Lifecycle, Reporter {
 
     /**
-     * Get the next URI that should be processed. If no URI becomes availible
+     * Get the next URI that should be processed. If no URI becomes available
      * during the time specified null will be returned.
      *
      * @return the next URI that should be processed.
@@ -120,10 +109,10 @@ public interface Frontier extends Lifecycle, Reporter {
     /**
      * Returns true if the frontier contains no more URIs to crawl.
      *
-     * <p>That is to say that there are no more URIs either currently availible
+     * <p>That is to say that there are no more URIs either currently available
      * (ready to be emitted), URIs belonging to deferred hosts or pending URIs
      * in the Frontier. Thus this method may return false even if there is no
-     * currently availible URI.
+     * currently available URI.
      *
      * @return true if the frontier contains no more URIs to crawl.
      */
@@ -251,7 +240,7 @@ public interface Frontier extends Lifecycle, Reporter {
      * the processing chain. Can include failure to acquire prerequisites, to
      * establish a connection with the host and any number of other problems.
      * Does not count those that will be retried, only those that have
-     * permenantly failed.
+     * permanently failed.
      *
      * @return Number of URIs that failed to process.
      */
@@ -352,7 +341,7 @@ public interface Frontier extends Lifecycle, Reporter {
      *                that are stored in cache (usually this means in memory
      *                rather then on disk, but that is an implementation
      *                detail) will be considered. Others will be entierly
-     *                ignored, as if they dont exist. This is usefull for quick
+     *                ignored, as if they don't exist. This is useful for quick
      *                peeks at the top of the URI list.
      * @return A URIFrontierMarker that is set for the 'start' of the frontier's
      *                URI list.
@@ -386,7 +375,7 @@ public interface Frontier extends Lifecycle, Reporter {
      * invoking it.
      *
      * @param marker
-     *            A marker specifing from what position in the Frontier the
+     *            A marker specifying from what position in the Frontier the
      *            list should begin.
      * @param numberOfMatches
      *            how many URIs to add at most to the list before returning it
@@ -395,12 +384,6 @@ public interface Frontier extends Lifecycle, Reporter {
      *            information about each URI beyond their names.
      * @return a list of all pending URIs falling within the specification
      *            of the marker
-     * @throws InvalidFrontierMarkerException when the
-     *            <code>URIFronterMarker</code> does not match the internal
-     *            state of the frontier. Tolerance for this can vary
-     *            considerably from one URIFrontier implementation to the next.
-     * @see FrontierMarker
-     * @see #getInitialMarker(String, boolean)
      */
     public CompositeData getURIsList(
             String marker,
@@ -441,7 +424,7 @@ public interface Frontier extends Lifecycle, Reporter {
      * Notify Frontier that it should consider the given UURI as if
      * already scheduled.
      * 
-     * @param u UURI instance to add to the Already Included set.
+     * @param curi CrawlURI instance to add to the Already Included set.
      */
     public void considerIncluded(CrawlURI curi);
 

@@ -50,7 +50,7 @@ public abstract class AbstractPersistProcessor extends Processor {
         
         // DNS query need not be persisted
         String scheme = curi.getUURI().getScheme();
-        if (!(scheme.equals("http") || scheme.equals("https") || scheme.equals("ftp"))) {
+        if (!(scheme.equals("http") || scheme.equals("https") || scheme.equals("ftp") || scheme.equals("sftp"))) {
             return false;
         }
         
@@ -62,7 +62,7 @@ public abstract class AbstractPersistProcessor extends Processor {
     }
 
     /**
-     * @param curi
+     * @param uri
      * @return true if {@code curi} has WRITE_TAG in the latest fetch history (i.e. this crawl).
      */
     protected boolean hasWriteTag(CrawlURI uri) {

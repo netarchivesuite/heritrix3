@@ -58,9 +58,9 @@ import org.springframework.validation.Validator;
  * Offers optional automatic checkpointing at a configurable interval 
  * in minutes. 
  * 
- * @contributor stack
- * @contributor gojomo
- * @contributor pjack
+ * @author stack
+ * @author gojomo
+ * @author pjack
  */
 public class CheckpointService implements Lifecycle, ApplicationContextAware, HasValidator {
     private final static Logger LOGGER =
@@ -240,6 +240,11 @@ public class CheckpointService implements Lifecycle, ApplicationContextAware, Ha
      * Run a checkpoint of the crawler
      */
     public synchronized String requestCrawlCheckpoint() throws IllegalStateException {
+        if (!controller.hasStarted()) {
+            LOGGER.info("crawl job has not started; ignoring");
+            return null;
+        }
+
         if (isCheckpointing()) {
             throw new IllegalStateException("Checkpoint already running.");
         }
@@ -393,6 +398,22 @@ public class CheckpointService implements Lifecycle, ApplicationContextAware, Ha
         if(isRunning) {
             throw new RuntimeException("may not set recovery Checkpoint after launch");
         }
+        // If the selectedCheckpoint is 'latest', pick up the latest checkpoint
+        // and use that:
+        if ("latest".equalsIgnoreCase(selectedCheckpoint)) {
+            List<File> cps = this.findAvailableCheckpointDirectories();
+            if (cps == null || cps.size() == 0) {
+                LOGGER.warning(
+                        "Cannot find any checkpoints so cannot choose the latest one! Assuming we should launch a new crawl.");
+                return;
+            }
+            // As per the API above, the most recent checkpoint is the first in
+            // the list:
+            File latestFile = cps.get(0);
+            // For the checkpoint we use the folder name:
+            selectedCheckpoint = latestFile.getName();
+        }
+        // Now setup the checkpoint:
         Checkpoint recoveryCheckpoint = new Checkpoint();
         recoveryCheckpoint.getCheckpointDir().setBase(getCheckpointsDir());
         recoveryCheckpoint.getCheckpointDir().setPath(selectedCheckpoint);

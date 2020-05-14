@@ -36,14 +36,14 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.commons.lang.StringUtils;
-import org.restlet.util.XmlWriter;
+import org.restlet.ext.xml.XmlWriter;
 import org.xml.sax.SAXException;
 
 /**
  * XmlMarshaller can be used to write data structures as simple xml. See
  * {@link #marshalDocument(Writer, String, Object)} for more information.
  * 
- * @contributor nlevitt
+ * @author nlevitt
  */
 public class XmlMarshaller {
     

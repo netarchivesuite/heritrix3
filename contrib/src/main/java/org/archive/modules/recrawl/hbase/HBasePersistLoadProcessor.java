@@ -35,7 +35,7 @@ import org.archive.modules.recrawl.FetchHistoryProcessor;
  * As with other fetch history processors, this needs to be combined with {@link FetchHistoryProcessor}
  * (set up after FetchHTTP, before WarcWriter) to work.
  * @see HBasePersistStoreProcessor
- * @contributor kenji
+ * @author kenji
  */
 public class HBasePersistLoadProcessor extends HBasePersistProcessor {
     private static final Logger logger =
@@ -80,7 +80,7 @@ public class HBasePersistLoadProcessor extends HBasePersistProcessor {
         // TODO: we want deduplicate robots.txt, too.
         //if (uri.isPrerequisite()) return false;
         String scheme = uri.getUURI().getScheme();
-        if (!(scheme.equals("http") || scheme.equals("https") || scheme.equals("ftp")))  {
+        if (!(scheme.equals("http") || scheme.equals("https") || scheme.equals("ftp") || scheme.equals("sftp")))  {
             return false;
         }
         return true;

@@ -27,6 +27,7 @@ import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.util.Iterator;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -78,7 +79,7 @@ public abstract class FPMergeUriUniqFilter implements UriUniqFilter {
     
     /** items awaiting merge
      * TODO: consider only sorting just pre-merge
-     * TODO: consider using a fastutil long->Object class
+     * TODO: consider using a fastutil long-&gt;Object class
      * TODO: consider actually writing items to disk file,
      * as in Najork/Heydon
      */
@@ -99,6 +100,8 @@ public abstract class FPMergeUriUniqFilter implements UriUniqFilter {
     protected ArrayLongFPCache quickCache = new ArrayLongFPCache();
     // TODO: make cache most-often seen, not just most-recent
     
+    protected AtomicLong addedCount = new AtomicLong();
+
     public FPMergeUriUniqFilter() {
         super();
         String profileLogFile = 
@@ -117,6 +120,11 @@ public abstract class FPMergeUriUniqFilter implements UriUniqFilter {
         return pendingSet.size();
     }
 
+    @Override
+    public long addedCount() {
+        return addedCount.get();
+    }
+
     public void setDestination(CrawlUriReceiver receiver) {
         this.receiver = receiver;
     }
@@ -131,6 +139,7 @@ public abstract class FPMergeUriUniqFilter implements UriUniqFilter {
      * @see org.archive.crawler.datamodel.UriUniqFilter#add(java.lang.String, org.archive.crawler.datamodel.CrawlURI)
      */
     public synchronized void add(String key, CrawlURI value) {
+        addedCount.incrementAndGet();
         profileLog(key);
         long fp = createFp(key); 
         if(! quickCheck(fp)) {

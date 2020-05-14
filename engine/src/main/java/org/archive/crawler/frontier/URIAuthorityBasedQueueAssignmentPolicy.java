@@ -72,22 +72,36 @@ implements
         kp.put("parallelQueues",count);
     }
 
+    /**
+    * Whether to assign URIs to parallel queues in round-robin fashon.
+    * False by default. If true, URIs will be assigned to a queue randomly.
+    */
+    public boolean getParallelQueuesRandomAssignment() {
+        return (Boolean) kp.get("parallelQueuesRandomAssignment");
+    }
+    {
+        setParallelQueuesRandomAssignment(false);
+    }
+    public void setParallelQueuesRandomAssignment(boolean doRandom) {
+        kp.put("parallelQueuesRandomAssignment",doRandom);
+    }
+
     public String getClassKey(CrawlURI curi) {
         if(getDeferToPrevious() && !StringUtils.isEmpty(curi.getClassKey())) {
             return curi.getClassKey();
         }
+
+        UURI basis = curi.getPolicyBasisUURI();
+        String candidate = getCoreKey(basis);
         
         if(!StringUtils.isEmpty(getForceQueueAssignment())) {
-            return getForceQueueAssignment(); 
+            candidate = getForceQueueAssignment();
         }
         
         // all whois urls in the same queue
         if (curi.getUURI().getScheme().equals("whois")) {
             return "whois...";
         }
-        
-        UURI basis = curi.getPolicyBasisUURI();
-        String candidate = getCoreKey(basis); 
         
         if(StringUtils.isEmpty(candidate)) {
             return DEFAULT_CLASS_KEY;
@@ -119,6 +133,9 @@ implements
      * @return
      */
     protected String bucketBasis(UURI uuri) {
+        if(getParallelQueuesRandomAssignment()){
+            return uuri.getEscapedURI();
+        }
         String path = new String(uuri.getRawPath());
         int i = path.indexOf('/',1);
         if(i<0) {

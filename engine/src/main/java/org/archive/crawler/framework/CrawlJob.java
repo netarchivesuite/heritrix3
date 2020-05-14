@@ -88,7 +88,7 @@ import org.xml.sax.SAXException;
  * CrawlJob provides convenience methods for an administrative 
  * interface to assemble, launch, monitor, and manage crawls. 
  * 
- * @contributor gojomo
+ * @author gojomo
  */
 public class CrawlJob implements Comparable<CrawlJob>, ApplicationListener<ApplicationEvent> {
     private final static Logger LOGGER =
@@ -181,6 +181,12 @@ public class CrawlJob implements Comparable<CrawlJob>, ApplicationListener<Appli
             BufferedReader jobLogReader = new BufferedReader(
                     new InputStreamReader(jobLogIn));
             String line;
+            // If we sliced into the file, make sure we skip to the next line:
+            // (See https://github.com/internetarchive/heritrix3/issues/239)
+            if (startPosition != 0) {
+                line = jobLogReader.readLine();
+            }
+            // Parse lines looking for launch details:
             while ((line = jobLogReader.readLine()) != null) {
                 Matcher m = launchLine.matcher(line);
                 if (m.matches()) {
@@ -625,7 +631,7 @@ public class CrawlJob implements Comparable<CrawlJob>, ApplicationListener<Appli
      * primary config (or other included configs). 
      * 
      * @param xml File to examine
-     * @return List<File> of all transitively-imported Files
+     * @return List&lt;File&gt; of all transitively-imported Files
      */
     @SuppressWarnings("unchecked")
     public List<File> getImportedConfigs(File xml) {
@@ -646,7 +652,7 @@ public class CrawlJob implements Comparable<CrawlJob>, ApplicationListener<Appli
     }
     
     /**
-     * Return all known ConfigPaths, as an aid to viewing or editting. 
+     * Return all known ConfigPaths, as an aid to viewing or editing.
      * 
      * @return all ConfigPaths known to the ApplicationContext, in a 
      * map by name, or an empty map if no ApplicationContext
@@ -977,7 +983,7 @@ public class CrawlJob implements Comparable<CrawlJob>, ApplicationListener<Appli
     protected Semaphore exportLock = new Semaphore(1);
 
     public long exportPendingUris() {
-        CrawlController cc = getCrawlController(); 
+        CrawlController cc = getCrawlController();
         if (cc==null) {
             return -1L;
         }

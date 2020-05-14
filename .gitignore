@@ -7,9 +7,15 @@ contrib/target
 .classpath
 .project
 .settings
+/docs/_build
 */.classpath
 */.project
 */.settings
+.idea
+*.iml
+/adhoc.keystore
+/heritrix_dmesg.log
+/jobs
 
 # Intellij project files
 *.iml

@@ -45,6 +45,7 @@ import org.archive.modules.Processor;
 import org.archive.modules.deciderules.recrawl.IdenticalDigestDecideRule;
 import org.archive.modules.net.CrawlHost;
 import org.archive.modules.net.ServerCache;
+import org.archive.modules.warc.BaseWARCRecordBuilder;
 import org.archive.spring.ConfigPath;
 import org.archive.util.FileUtils;
 import org.json.JSONException;
@@ -276,15 +277,9 @@ implements Lifecycle, Checkpointable, WriterPoolSettings {
 
     private AtomicInteger serial = new AtomicInteger();
     
-
-    /**
-     * @param name Name of this processor.
-     * @param description Description for this processor.
-     */
     public WriterPoolProcessor() {
         super();
     }
-
 
     public synchronized void start() {
         if (isRunning()) {
@@ -351,7 +346,7 @@ implements Lifecycle, Checkpointable, WriterPoolSettings {
             retVal = curi.getFetchStatus() == S_WHOIS_SUCCESS;
         } else if (scheme.equals("http") || scheme.equals("https")) {
             retVal = curi.getFetchStatus() > 0 && curi.isHttpTransaction();
-        } else if (scheme.equals("ftp")) {
+        } else if (scheme.equals("ftp") || scheme.equals("sftp")) {
             retVal = curi.getFetchStatus() > 0;
         } else {
             logger.info("This writer does not write out scheme " +
@@ -376,7 +371,10 @@ implements Lifecycle, Checkpointable, WriterPoolSettings {
      * 
      * @param curi CrawlURI
      * @return String of IP address
+     * 
+     * @deprecated WARCRecordBuilder instances use {@link BaseWARCRecordBuilder#getHostAddress(CrawlURI)}
      */
+    @Deprecated
     protected String getHostAddress(CrawlURI curi) {
         // special handling for DNS URIs: want address of DNS server
         if (curi.getUURI().getScheme().toLowerCase().equals("dns")) {
@@ -454,7 +452,9 @@ implements Lifecycle, Checkpointable, WriterPoolSettings {
             File f = path.getFile();
             if (!f.exists()) {
                 try {
-                    FileUtils.ensureWriteableDirectory(f);
+                    synchronized (this) {
+                        FileUtils.ensureWriteableDirectory(f);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     continue;

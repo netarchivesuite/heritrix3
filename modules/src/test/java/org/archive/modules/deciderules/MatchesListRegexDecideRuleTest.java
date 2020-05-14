@@ -12,7 +12,8 @@ import java.util.regex.Pattern;
 public class MatchesListRegexDecideRuleTest extends TestCase {
 
     /**
-     * Tests that a pathological regex for a crawler-trap is treated as non-matching.
+     * Not easy to test this code in older versions of junit. Basically with the timeout set to "0", this method
+     * will never return.
      * @throws URIException
      */
     public void testEvaluate() throws URIException {
@@ -25,9 +26,26 @@ public class MatchesListRegexDecideRuleTest extends TestCase {
         rule.setEnabled(true);
         rule.setListLogicalOr(true);
         rule.setDecision(DecideResult.REJECT);
-        rule.setTimeoutPerRegexSeconds(3);
+        rule.setTimeoutPerRegexSeconds(2);
         final CrawlURI curi = new CrawlURI(UURIFactory.getInstance(seed));
         final DecideResult decideResult = rule.decisionFor(curi);
         assertEquals("Expected NONE not " + decideResult , DecideResult.NONE, decideResult);
     }
+
+    public void testEvaluateInTime() throws URIException {
+        final String regex = "http://www\\.netarkivet\\.dk/x+";
+        String seed = "http://www.netarkivet.dk/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
+        MatchesListRegexDecideRule rule = new MatchesListRegexDecideRule();
+        List<Pattern> patternList = new ArrayList<>();
+        patternList.add(Pattern.compile(regex));
+        rule.setRegexList(patternList);
+        rule.setEnabled(true);
+        rule.setListLogicalOr(true);
+        rule.setDecision(DecideResult.REJECT);
+        rule.setTimeoutPerRegexSeconds(2);
+        final CrawlURI curi = new CrawlURI(UURIFactory.getInstance(seed));
+        final DecideResult decideResult = rule.decisionFor(curi);
+        assertEquals("Expected REJECT not " + decideResult , DecideResult.REJECT, decideResult);
+    }
+
 }
