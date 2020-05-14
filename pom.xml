@@ -18,7 +18,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 	<groupId>org.archive</groupId>
 	<!--This project is parent to all under 'projects' subdirectory-->
 	<artifactId>heritrix</artifactId>
-	<version>3.3.0-BDB-5.0.x-NAS-5.7-SNAPSHOT</version>
+	<version>3.3.0-BDB-5.0.x-NAS-6.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Heritrix 3</name>
 	<description>
@@ -28,12 +28,6 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 	<url>http://crawler.archive.org</url>
 	<inceptionYear>2003</inceptionYear>
 
-    <scm>
-       <connection>scm:git:https://github.com/internetarchive/heritrix3.git</connection>
-       <developerConnection>scm:git:https://github.com/internetarchive/heritrix3.git</developerConnection>
-       <url>https://github.com/internetarchive/heritrix3</url>
-      <tag>HEAD</tag>
-  </scm>
 
 	<licenses>
 		<license>
@@ -106,15 +100,15 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 			<releases><enabled>true</enabled></releases>
 			<snapshots><enabled>true</enabled></snapshots>
 		</repository>
-        <repository>
-            <id>oracleReleases</id>
-            <name>Oracle Released Java Packages</name>
-            <url>http://download.oracle.com/maven</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots />
-        </repository>
+		<repository>
+			<id>oracleReleases</id>
+			<name>Oracle Released Java Packages</name>
+			<url>http://download.oracle.com/maven</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots />
+		</repository>
 	</repositories>
 
 	<prerequisites>
@@ -168,40 +162,39 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 		<module>engine</module>
 		<module>contrib</module>
 		<module>dist</module>
-		<module>contrib</module>
 	</modules>
 
 
 	<distributionManagement>
-	<!--	<repository>
-			<id>repository</id>
-			<name>Repository</name>
-			<url>${repository.url}</url>
-		</repository>
-		<site>
-			<id>website</id>
-			<name>Website</name>
-			<url>${website.url}/projects/${project.artifactId}</url>
-		</site> -->
+		<!--	<repository>
+        <id>repository</id>
+        <name>Repository</name>
+        <url>${repository.url}</url>
+      </repository>
+      <site>
+        <id>website</id>
+        <name>Website</name>
+        <url>${website.url}/projects/${project.artifactId}</url>
+      </site> -->
 		<repository>
-            <id>sbforge-nexus</id>
-            <name>SBForge Nexus Repo manager</name>
-            <url>https://sbforge.org/nexus/content/repositories/releases</url>
-        </repository>
+			<id>sbforge-nexus</id>
+			<name>SBForge Nexus Repo manager</name>
+			<url>https://sbforge.org/nexus/content/repositories/releases</url>
+		</repository>
 
-        <snapshotRepository>
-            <id>sbforge-nexus</id>
-            <name>SBForge Nexus Repo manager</name>
-            <url>https://sbforge.org/nexus/content/repositories/snapshots/</url>
-        </snapshotRepository>
+		<snapshotRepository>
+			<id>sbforge-nexus</id>
+			<name>SBForge Nexus Repo manager</name>
+			<url>https://sbforge.org/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
 	</distributionManagement>
 
 	<scm>
-   <url>https://github.com/netarchivesuite/heritrix3</url>
-   <connection>scm:git:https://github.com/netarchivesuite/heritrix3.git</connection>
-   <developerConnection>scm:git:git@github.com:netarchivesuite/heritrix3.git</developerConnection>
-   <tag>HEAD</tag>
- </scm>
+		<url>https://github.com/netarchivesuite/heritrix3</url>
+		<connection>scm:git:https://github.com/netarchivesuite/heritrix3.git</connection>
+		<developerConnection>scm:git:git@github.com:netarchivesuite/heritrix3.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
 
 	<developers>
 		<developer>
@@ -413,7 +406,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-                               <version>3.3</version>
+				<version>3.3</version>
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
@@ -421,25 +414,24 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 				</configuration>
 			</plugin>
 			<plugin>
-			                <artifactId>maven-release-plugin</artifactId>
-			                <version>2.5.2</version>
-			                <configuration>
-			                    <autoVersionSubmodules>true</autoVersionSubmodules>
-			                </configuration>
-			            </plugin>
-		</plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
-                <configuration>
-                    <argLine>-Xmx1g</argLine>
-                    <systemPropertyVariables>
-                        <testtmpdir>${project.build.directory}/heritrix-junit-tests</testtmpdir>
-                        <heritrix.hostname>localhost</heritrix.hostname>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.5.2</version>
+				<configuration>
+					<autoVersionSubmodules>true</autoVersionSubmodules>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.22.2</version>
+				<configuration>
+					<argLine>-Xmx1g</argLine>
+					<systemPropertyVariables>
+						<testtmpdir>${project.build.directory}/heritrix-junit-tests</testtmpdir>
+						<heritrix.hostname>localhost</heritrix.hostname>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 	<properties>
@@ -448,87 +440,87 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 		<doclint>none</doclint>
 		<additionalparam>-Xdoclint:none</additionalparam>
 	</properties>
-    <profiles>
-        <profile>
-            <id>ossrh</id>
-            <distributionManagement>
-              <repository>
-                <id>sonatype-nexus-staging</id>
-                <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-              </repository>
-              <snapshotRepository>
-                <id>sonatype-nexus-snapshots</id>
-                <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-              </snapshotRepository>
-            </distributionManagement>
-            <build>
-                <plugins>
-                   <plugin>
-                     <groupId>org.sonatype.plugins</groupId>
-                     <artifactId>nexus-staging-maven-plugin</artifactId>
-                     <version>1.6.7</version>
-                     <extensions>true</extensions>
-                     <configuration>
-                       <serverId>sonatype-nexus-staging</serverId>
-                       <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                       <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                     </configuration>
-                   </plugin>
-                   <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-release-plugin</artifactId>
-                    <version>2.5.3</version>
-                    <configuration>
-                    <arguments>-Dmaven.test.skipTests=true -Dmaven.test.skip=true</arguments>
-                      <tagNameFormat>@{project.version}</tagNameFormat>
-                      <autoVersionSubmodules>true</autoVersionSubmodules>
-                      <useReleaseProfile>false</useReleaseProfile>
-                      <releaseProfiles>ossrh</releaseProfiles>
-                      <goals>deploy</goals>
-                    </configuration>
-                   </plugin>
-                    <plugin>
-                     <groupId>org.apache.maven.plugins</groupId>
-                     <artifactId>maven-source-plugin</artifactId>
-                     <version>2.2.1</version>
-                     <executions>
-                       <execution>
-                         <id>attach-sources</id>
-                         <goals>
-                           <goal>jar-no-fork</goal>
-                         </goals>
-                       </execution>
-                     </executions>
-                   </plugin>
-                   <plugin>
-                     <groupId>org.apache.maven.plugins</groupId>
-                     <artifactId>maven-javadoc-plugin</artifactId>
-                     <version>2.9.1</version>
-                     <executions>
-                       <execution>
-                         <id>attach-javadocs</id>
-                         <goals>
-                           <goal>jar</goal>
-                         </goals>
-                       </execution>
-                     </executions>
-                   </plugin>
-                       <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.5</version>
-                        <executions>
-                          <execution>
-                            <id>sign-artifacts</id>
-                            <phase>verify</phase>
-                            <goals>
-                              <goal>sign</goal>
-                            </goals>
-                          </execution>
-                        </executions>
-                      </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+	<profiles>
+		<profile>
+			<id>ossrh</id>
+			<distributionManagement>
+				<repository>
+					<id>sonatype-nexus-staging</id>
+					<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+				</repository>
+				<snapshotRepository>
+					<id>sonatype-nexus-snapshots</id>
+					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+				</snapshotRepository>
+			</distributionManagement>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.sonatype.plugins</groupId>
+						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<version>1.6.7</version>
+						<extensions>true</extensions>
+						<configuration>
+							<serverId>sonatype-nexus-staging</serverId>
+							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+							<autoReleaseAfterClose>true</autoReleaseAfterClose>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-release-plugin</artifactId>
+						<version>2.5.3</version>
+						<configuration>
+							<arguments>-Dmaven.test.skipTests=true -Dmaven.test.skip=true</arguments>
+							<tagNameFormat>@{project.version}</tagNameFormat>
+							<autoVersionSubmodules>true</autoVersionSubmodules>
+							<useReleaseProfile>false</useReleaseProfile>
+							<releaseProfiles>ossrh</releaseProfiles>
+							<goals>deploy</goals>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.2.1</version>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.9.1</version>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.5</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

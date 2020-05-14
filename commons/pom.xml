@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.archive</groupId>
 		<artifactId>heritrix</artifactId>
-		<version>3.3.0-BDB-5.0.x-NAS-5.7-SNAPSHOT</version>
+		<version>3.3.0-BDB-5.0.x-NAS-6.0-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.archive.heritrix</groupId>
@@ -34,7 +34,7 @@
 		<dependency>
 			<groupId>com.sleepycat</groupId>
 			<artifactId>je</artifactId>
-			<version>${je.version}</version>
+			<version>7.5.11</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-lang</groupId>
