@@ -54,8 +54,8 @@ public class ExtractorSitemap extends ContentExtractor {
         if (mimeType != null ) {
             // Looks like XML:
             if (mimeType.toLowerCase().startsWith("text/xml")
-                    || mimeType.toLowerCase().startsWith("application/xml")) {
-
+                    || mimeType.toLowerCase().startsWith("application/xml")  || uri.getURI().endsWith(".xml")) {
+                System.out.println("Sniffing " + uri.getBaseURI() + " for sitemap info.");
                 // check if content starts with xml preamble "<?xml" and does
                 // contain "<urlset " or "<sitemapindex" early in the content
                 String contentStartingChunk = uri.getRecorder()
@@ -65,8 +65,14 @@ public class ExtractorSitemap extends ContentExtractor {
                                 "(?is).*(?:<urlset|<sitemapindex[>\\s]).*")) {
                     LOGGER.info("Based on content sniffing, this is a sitemap: "
                             + uri);
+                    System.out.println("Based on content sniffing, this is a sitemap: "
+                            + uri);
                     return true;
+                } else {
+                    System.out.println("Based on content sniffing, this is not a sitemap: "
+                            + uri);
                 }
+
             }
         }
         
