@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import crawlercommons.mimetypes.MimeTypeDetector;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.io.IOUtils;
 import org.archive.modules.CrawlURI;
@@ -54,8 +55,13 @@ public class ExtractorSitemap extends ContentExtractor {
         if (mimeType != null ) {
             // Looks like XML:
             if (mimeType.toLowerCase().startsWith("text/xml")
-                    || mimeType.toLowerCase().startsWith("application/xml")  || uri.getURI().endsWith(".xml")) {
-                System.out.println("Sniffing " + uri.getBaseURI() + " for sitemap info.");
+                    || mimeType.toLowerCase().startsWith("application/xml")  || uri.getURI().contains(".xml")) {
+                //System.out.println("Sniffing " + uri.getBaseURI() + " for sitemap info.");
+                if (uri.getURI().contains("sitemap") && uri.getURI().contains(".xml.gz")) {
+                    /*System.out.println("Based on uri, this is a sitemap: "
+                            + uri);*/
+                    return true;
+                }
                 // check if content starts with xml preamble "<?xml" and does
                 // contain "<urlset " or "<sitemapindex" early in the content
                 String contentStartingChunk = uri.getRecorder()
@@ -65,12 +71,12 @@ public class ExtractorSitemap extends ContentExtractor {
                                 "(?is).*(?:<urlset|<sitemapindex[>\\s]).*")) {
                     LOGGER.info("Based on content sniffing, this is a sitemap: "
                             + uri);
-                    System.out.println("Based on content sniffing, this is a sitemap: "
-                            + uri);
+                    /*System.out.println("Based on content sniffing, this is a sitemap: "
+                            + uri);*/
                     return true;
                 } else {
-                    System.out.println("Based on content sniffing, this is not a sitemap: "
-                            + uri);
+                   /* System.out.println("Based on content sniffing, this is not a sitemap: "
+                            + uri);*/
                 }
 
             }
@@ -85,15 +91,19 @@ public class ExtractorSitemap extends ContentExtractor {
      */
     @Override
     protected boolean innerExtract(CrawlURI uri) {
+        //System.out.println("Extracting possible sitemap " + uri.getURI());
         // Parse the sitemap:
         AbstractSiteMap sitemap = parseSiteMap(uri);
 
         // Did that work?
         if (sitemap != null) {
+            //System.out.println("Extracted sitemap " + uri.getURI());
             // Process results:
             if (sitemap.isIndex()) {
                 final Collection<AbstractSiteMap> links = ((SiteMapIndex) sitemap)
                         .getSitemaps();
+                //System.out.println("Found index sitemap " + uri.getURI() + " with " +
+                //links.size() + " links.");
                 for (final AbstractSiteMap asm : links) {
                     if (asm == null) {
                         continue;
@@ -104,6 +114,8 @@ public class ExtractorSitemap extends ContentExtractor {
             } else {
                 final Collection<SiteMapURL> links = ((SiteMap) sitemap)
                         .getSiteMapUrls();
+                /*System.out.println("Found non-index sitemap " + uri.getURI() + " with " +
+                        links.size() + " links.");*/
                 for (final SiteMapURL url : links) {
                     if (url == null) {
                         continue;
@@ -127,8 +139,8 @@ public class ExtractorSitemap extends ContentExtractor {
         // The thing we will create:
         AbstractSiteMap sitemap = null;
 
-        // Be strict about URLs but allow partial extraction:
-        SiteMapParser smp = new SiteMapParser(true, true);
+        // Be lenient about URLs and allow partial extraction:
+        SiteMapParser smp = new SiteMapParser(false, true);
         // Parse it up:
         try {
             // Sitemaps are not supposed to be bigger than 50MB (according to
@@ -144,9 +156,13 @@ public class ExtractorSitemap extends ContentExtractor {
         } catch (IOException e) {
             LOGGER.log(Level.WARNING,
                     "I/O Exception when parsing sitemap " + uri, e);
+           /* System.out.println(e.getMessage());
+            e.printStackTrace();*/
         } catch (UnknownFormatException e) {
             LOGGER.log(Level.WARNING,
                     "UnknownFormatException when parsing sitemap " + uri, e);
+            /*System.out.println(e.getMessage());
+            e.printStackTrace();*/
         }
         return sitemap;
     }
