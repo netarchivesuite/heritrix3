@@ -26,6 +26,16 @@ import crawlercommons.sitemaps.UnknownFormatException;
  * 
  * @author Andrew Jackson <Andrew.Jackson@bl.uk>
  *
+ *     TODO @author Colin Rosenthal <csr@kb.dk>
+ *     There are two functional changes added by KB-Denmark
+ *     i) shouldExtract() is made much more lenient with sitemap identification for .gz files
+ *     ii) the call to siteMapParser is made lenient with respect to URLs
+ *
+ *     We should either
+ *     i) Make this a new class ExtractorSitemapLenient, or
+ *     ii) Make these configurable fields in the bean
+ *
+ *
  */
 public class ExtractorSitemap extends ContentExtractor {
     private static final Logger LOGGER = Logger
