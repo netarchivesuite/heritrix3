@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import crawlercommons.mimetypes.MimeTypeDetector;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.io.IOUtils;
 import org.archive.modules.CrawlURI;
@@ -26,20 +25,23 @@ import crawlercommons.sitemaps.UnknownFormatException;
  * 
  * @author Andrew Jackson <Andrew.Jackson@bl.uk>
  *
- *     TODO @author Colin Rosenthal <csr@kb.dk>
- *     There are two functional changes added by KB-Denmark
- *     i) shouldExtract() is made much more lenient with sitemap identification for .gz files
- *     ii) the call to siteMapParser is made lenient with respect to URLs
- *
- *     We should either
- *     i) Make this a new class ExtractorSitemapLenient, or
- *     ii) Make these configurable fields in the bean
- *
- *
  */
 public class ExtractorSitemap extends ContentExtractor {
     private static final Logger LOGGER = Logger
             .getLogger(ExtractorSitemap.class.getName());
+
+    /**
+     * If urlPattern is not null then any url marked as a sitemap and matching the pattern is
+     * assumed to be a sitemap. Otherwise the mime-type is checked (must be "text/xml" or "application/xml") and the
+     * file is "sniffed" for the expected start of a sitemap file.
+     */
+    private String urlPattern = null;
+
+    /**
+     * If true, all urls in the sitemap file are extracted, regardless of whether or not they obey the scoping rules
+     * specified in the sitemap protocol (https://www.sitemaps.org/protocol.html).
+     */
+    private boolean enableLenientExtraction = false;
 
     /* (non-Javadoc)
      * @see org.archive.modules.extractor.ContentExtractor#shouldExtract(org.archive.modules.CrawlURI)
@@ -60,18 +62,17 @@ public class ExtractorSitemap extends ContentExtractor {
             }
         }
 
+        if (urlPattern != null &&  uri.getURI().matches(urlPattern)) {
+            return true;
+        }
+
         // Via content type:
         String mimeType = uri.getContentType();
         if (mimeType != null ) {
             // Looks like XML:
             if (mimeType.toLowerCase().startsWith("text/xml")
-                    || mimeType.toLowerCase().startsWith("application/xml")  || uri.getURI().contains(".xml")) {
-                //System.out.println("Sniffing " + uri.getBaseURI() + " for sitemap info.");
-                if (uri.getURI().contains("sitemap") && uri.getURI().contains(".xml.gz")) {
-                    /*System.out.println("Based on uri, this is a sitemap: "
-                            + uri);*/
-                    return true;
-                }
+                    || mimeType.toLowerCase().startsWith("application/xml")) {
+
                 // check if content starts with xml preamble "<?xml" and does
                 // contain "<urlset " or "<sitemapindex" early in the content
                 String contentStartingChunk = uri.getRecorder()
@@ -81,14 +82,8 @@ public class ExtractorSitemap extends ContentExtractor {
                                 "(?is).*(?:<urlset|<sitemapindex[>\\s]).*")) {
                     LOGGER.info("Based on content sniffing, this is a sitemap: "
                             + uri);
-                    /*System.out.println("Based on content sniffing, this is a sitemap: "
-                            + uri);*/
                     return true;
-                } else {
-                   /* System.out.println("Based on content sniffing, this is not a sitemap: "
-                            + uri);*/
                 }
-
             }
         }
         
@@ -101,19 +96,15 @@ public class ExtractorSitemap extends ContentExtractor {
      */
     @Override
     protected boolean innerExtract(CrawlURI uri) {
-        //System.out.println("Extracting possible sitemap " + uri.getURI());
         // Parse the sitemap:
         AbstractSiteMap sitemap = parseSiteMap(uri);
 
         // Did that work?
         if (sitemap != null) {
-            //System.out.println("Extracted sitemap " + uri.getURI());
             // Process results:
             if (sitemap.isIndex()) {
                 final Collection<AbstractSiteMap> links = ((SiteMapIndex) sitemap)
                         .getSitemaps();
-                //System.out.println("Found index sitemap " + uri.getURI() + " with " +
-                //links.size() + " links.");
                 for (final AbstractSiteMap asm : links) {
                     if (asm == null) {
                         continue;
@@ -124,8 +115,6 @@ public class ExtractorSitemap extends ContentExtractor {
             } else {
                 final Collection<SiteMapURL> links = ((SiteMap) sitemap)
                         .getSiteMapUrls();
-                /*System.out.println("Found non-index sitemap " + uri.getURI() + " with " +
-                        links.size() + " links.");*/
                 for (final SiteMapURL url : links) {
                     if (url == null) {
                         continue;
@@ -148,9 +137,8 @@ public class ExtractorSitemap extends ContentExtractor {
     private AbstractSiteMap parseSiteMap(CrawlURI uri) {
         // The thing we will create:
         AbstractSiteMap sitemap = null;
-
-        // Be lenient about URLs and allow partial extraction:
-        SiteMapParser smp = new SiteMapParser(false, true);
+        // allow partial extraction
+        SiteMapParser smp = new SiteMapParser(isEnableLenientExtraction(), true);
         // Parse it up:
         try {
             // Sitemaps are not supposed to be bigger than 50MB (according to
@@ -166,13 +154,9 @@ public class ExtractorSitemap extends ContentExtractor {
         } catch (IOException e) {
             LOGGER.log(Level.WARNING,
                     "I/O Exception when parsing sitemap " + uri, e);
-           /* System.out.println(e.getMessage());
-            e.printStackTrace();*/
         } catch (UnknownFormatException e) {
             LOGGER.log(Level.WARNING,
                     "UnknownFormatException when parsing sitemap " + uri, e);
-            /*System.out.println(e.getMessage());
-            e.printStackTrace();*/
         }
         return sitemap;
     }
@@ -192,9 +176,15 @@ public class ExtractorSitemap extends ContentExtractor {
 
             // Add the URI:
         	// Adding 'regular' URL listed in the sitemap
-            addRelativeToBase(curi, max, newUri.toString(),
+            CrawlURI newCuri = addRelativeToBase(curi, max, newUri.toString(),
                     LinkContext.MANIFEST_MISC, Hop.MANIFEST);
 
+            if (isSitemap) {
+                // Annotate as a Site Map:
+                newCuri.getAnnotations().add(
+                        ExtractorRobotsTxt.ANNOTATION_IS_SITEMAP);
+            }
+            
             // And log about it:
             LOGGER.fine("Found " + newUri + " from " + curi + " Dated "
                     + lastModified + " and with isSitemap = " + isSitemap);
@@ -206,5 +196,33 @@ public class ExtractorSitemap extends ContentExtractor {
         }
 
     }
+
+    public String getUrlPattern() {
+        return urlPattern;
+    }
+
+    /**
+     * If urlPattern is not null then any url marked as a sitemap and matching the pattern is
+     * assumed to be a sitemap. Otherwise the mime-type is checked (must be "text/xml" or "application/xml") and the
+     * file is "sniffed" for the expected start of a sitemap file.
+     * @param urlPattern the url pattern to match
+     */
+    public void setUrlPattern(String urlPattern) {
+        this.urlPattern = urlPattern;
+    }
+
+    public boolean isEnableLenientExtraction() {
+        return enableLenientExtraction;
+    }
+
+    /**
+     * If true, all urls in the sitemap file are extracted, regardless of whether or not they obey the scoping rules
+     * specified in the sitemap protocol (https://www.sitemaps.org/protocol.html).
+     * @param enableLenientExtraction whether to extract all urls
+     */
+    public void setEnableLenientExtraction(boolean enableLenientExtraction) {
+        this.enableLenientExtraction = enableLenientExtraction;
+    }
+
 
 }

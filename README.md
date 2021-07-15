@@ -1,5 +1,4 @@
 # Heritrix
-[![Build Status](https://travis-ci.org/internetarchive/heritrix3.svg?branch=master)](https://travis-ci.org/internetarchive/heritrix3)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.archive/heritrix/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.archive/heritrix)
 [![Javadoc](https://javadoc-badge.appspot.com/org.archive/heritrix.svg?label=javadoc)](https://www.javadoc.io/doc/org.archive.heritrix/heritrix-engine)
 [![LICENSE](https://img.shields.io/badge/license-Apache-blue.svg?style=flat-square)](./LICENSE)
@@ -10,8 +9,10 @@ Heritrix is the Internet Archive's open-source, extensible, web-scale, archival-
 
 ## Crawl Operators!
 
-Heritrix is designed to respect the [`robots.txt`](http://www.robotstxt.org/wc/robots.html) exclusion directives and [META robots tags](http://www.robotstxt.org/wc/exclusion.html#meta). Please consider the
+Heritrix is designed to respect the [`robots.txt`](http://www.robotstxt.org/robotstxt.html) exclusion directives<sup>†</sup> and [META nofollow tags](http://www.robotstxt.org/meta.html). Please consider the
 load your crawl will place on seed sites and set politeness policies accordingly. Also, always identify your crawl with contact information in the `User-Agent` so sites that may be adversely affected by your crawl can contact you or adapt their server behavior accordingly.
+
+<sup>†</sup> The newer wildcard extension to robots.txt is [not yet](https://github.com/internetarchive/heritrix3/issues/250) supported.
 
 ## Getting Started
 
