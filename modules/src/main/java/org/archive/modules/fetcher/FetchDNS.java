@@ -28,6 +28,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.util.logging.Level;
@@ -239,7 +240,8 @@ public class FetchDNS extends Processor {
         try {
         	recordDNS(curi, rrecordSet);
             curi.setFetchStatus(S_DNS_SUCCESS);
-            curi.setServerIP(ResolverConfig.getCurrentConfig().server().getAddress().getHostAddress());
+            final InetSocketAddress server = ResolverConfig.getCurrentConfig().server();
+            curi.setServerIP(server.getAddress().getHostAddress());
         } catch (IOException e) {
         	logger.log(Level.SEVERE, "Failed store of DNS Record for " +
         		curi.toString(), e);

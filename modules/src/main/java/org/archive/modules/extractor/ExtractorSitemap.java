@@ -63,7 +63,10 @@ public class ExtractorSitemap extends ContentExtractor {
         }
 
         if (urlPattern != null &&  uri.getURI().matches(urlPattern)) {
+            System.out.println("Accepting " + uri.getURI() + " because it matches " + urlPattern);
             return true;
+        } else {
+            System.out.println("rejecting " + uri.getURI() + " because it doesn't matche " + urlPattern);
         }
 
         // Via content type:
@@ -138,7 +141,7 @@ public class ExtractorSitemap extends ContentExtractor {
         // The thing we will create:
         AbstractSiteMap sitemap = null;
         // allow partial extraction
-        SiteMapParser smp = new SiteMapParser(isEnableLenientExtraction(), true);
+        SiteMapParser smp = new SiteMapParser(!isEnableLenientExtraction(), true);
         // Parse it up:
         try {
             // Sitemaps are not supposed to be bigger than 50MB (according to
