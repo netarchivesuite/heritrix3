@@ -180,17 +180,9 @@ public class EngineResource extends BaseResource {
                     cancel = true; 
                 }
             }
-			if (!cancel) {
-				Flash.addFlash(getResponse(), "Shutting down ... bye");
-				new Thread(() -> {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
-					System.exit(0);
-				}).start();
-			}
+            if(!cancel) {
+                System.exit(0); 
+            }
         } else if ("gc".equals(action)) {
             System.gc();
         }
