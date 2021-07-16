@@ -160,14 +160,16 @@ public class EngineResource extends BaseResource {
         	        }
         	    }
         	}
-        } else if ("exit java process".equals(action)) { 
+        } else if ("exit java process".equals(action)) {
+            System.out.println("processing java process exit request.");
             boolean cancel = false; 
             if(!"on".equals(form.getFirstValue("im_sure"))) {
                 Flash.addFlash(
                         getResponse(),
                         "You must tick \"I'm sure\" to trigger exit", 
                         Flash.Kind.NACK);
-                cancel = true; 
+                System.out.println("Rejecting exit request (1).");
+                cancel = true;
             }
             for(Map.Entry<String,CrawlJob> entry : getBuiltJobs().entrySet()) {
                 if(!"on".equals(form.getFirstValue("ignore__"+entry.getKey()))) {
@@ -177,20 +179,14 @@ public class EngineResource extends BaseResource {
                                 +entry.getValue().getJobStatusDescription()
                                 +"&raquo;", 
                             Flash.Kind.NACK);
+                    System.out.println("Rejecting exit request (1).");
                     cancel = true; 
                 }
             }
-			if (!cancel) {
-				Flash.addFlash(getResponse(), "Shutting down ... bye");
-				new Thread(() -> {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						Thread.currentThread().interrupt();
-					}
-					System.exit(0);
-				}).start();
-			}
+            if(!cancel) {
+                System.out.println("Exiting now.");
+                System.exit(0); 
+            }
         } else if ("gc".equals(action)) {
             System.gc();
         }

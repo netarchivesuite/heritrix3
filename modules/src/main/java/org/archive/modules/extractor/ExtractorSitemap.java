@@ -63,10 +63,7 @@ public class ExtractorSitemap extends ContentExtractor {
         }
 
         if (urlPattern != null &&  uri.getURI().matches(urlPattern)) {
-            System.out.println("Accepting " + uri.getURI() + " because it matches " + urlPattern);
             return true;
-        } else {
-            System.out.println("rejecting " + uri.getURI() + " because it doesn't matche " + urlPattern);
         }
 
         // Via content type:
