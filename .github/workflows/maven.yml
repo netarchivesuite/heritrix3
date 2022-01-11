@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        jdk: [8, 11, 16]
+        jdk: [8, 11, 17]
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -20,7 +20,7 @@ jobs:
       uses: actions/setup-java@v2
       with:
         java-version: ${{ matrix.jdk }}
-        distribution: 'adopt'
+        distribution: 'temurin'
     - name: Cache local Maven repository
       uses: actions/cache@v2
       with:
