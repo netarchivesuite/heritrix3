@@ -22,6 +22,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.sleepycat.je.EnvironmentConfig;
+import com.sleepycat.je.EnvironmentMutableConfig;
 import org.apache.commons.io.FileUtils;
 import org.archive.util.bdbje.EnhancedEnvironment;
 import org.junit.*;
@@ -47,7 +49,11 @@ public class ObjectIdentityBdbManualCacheTest {
         org.archive.util.FileUtils.ensureWriteableDirectory(envDir);
         FileUtils.deleteDirectory(envDir);
         org.archive.util.FileUtils.ensureWriteableDirectory(envDir);
-        env = EnhancedEnvironment.getTestEnvironment(envDir); 
+        env = EnhancedEnvironment.getTestEnvironment(envDir);
+        EnvironmentMutableConfig mutableConfig = env.getMutableConfig();
+        mutableConfig.setMaxDisk(5000000000L);
+        mutableConfig.setConfigParam(EnvironmentConfig.FREE_DISK, "500000000");
+        env.setMutableConfig(mutableConfig);
         this.cache = new ObjectIdentityBdbManualCache<IdentityCacheableWrapper<HashMap<String,String>>>();
         this.cache.initialize(env,"setUpCache",IdentityCacheableWrapper.class, env.getClassCatalog());
     }
