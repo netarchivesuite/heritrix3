@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.archive.checkpointing.Checkpoint;
@@ -27,6 +28,7 @@ import org.archive.util.FileUtils;
 @SuppressWarnings("serial")
 public class CrawlJobModel extends LinkedHashMap<String, Object> implements Serializable {
 
+	private static final String CURRENT_WARC = ".open";
 	private static final String LATEST_WARCS = "/latest/warcs";
 	private CrawlJob crawlJob;
 	public static final IOFileFilter EDIT_FILTER = FileUtils.getRegexFileFilter(".*\\.((c?xml)|(txt))$");
@@ -89,7 +91,7 @@ public class CrawlJobModel extends LinkedHashMap<String, Object> implements Seri
 
 		File warcsDir = new File(crawlJob.getJobDir(), LATEST_WARCS);
 		if (warcsDir.exists()) {
-			sizeTotalsReportData.put("sizeOnDisk", org.apache.commons.io.FileUtils.sizeOfDirectory(warcsDir));
+			sizeTotalsReportData.put("sizeOnDisk", sizeOfDir(warcsDir));
 		} else {
 			sizeTotalsReportData.put("sizeOnDisk", 0L);
 		}
@@ -149,6 +151,29 @@ public class CrawlJobModel extends LinkedHashMap<String, Object> implements Seri
 			this.put("crawlLogFilePath",
 					crawlJob.getCrawlController().getLoggerModule().getCrawlLogPath().getFile().getAbsolutePath());
 		this.put("reports", generateReports());
+	}
+
+	private long sizeOfDir(File warcsDir) {
+		long size = 0;
+		File[] warcsFiles = warcsDir.listFiles();
+		if (warcsFiles != null) {
+			for (File file : warcsFiles) {
+				if (!file.exists()) {
+					File closedWarc = new File(warcsDir.getAbsolutePath(), file.getName().replace(CURRENT_WARC, ""));
+					if (closedWarc.exists()) {
+						crawlJob.getJobLogger().log(Level.INFO, "sizeTotalsReportData - filename is changed from " + file.getName() + " to "+ closedWarc.getName());
+						file= closedWarc;
+					} else {
+						crawlJob.getJobLogger().log(Level.WARNING, "sizeTotalsReportData - file " + file.getName() + " not exist" );
+						continue;
+					}
+		        }
+		        if (!file.isDirectory()) {
+		           size += file.length();
+		        }
+			}
+		}
+		return size;
 	}
 
 	public String formatBytes(Long bytes) {
