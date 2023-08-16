@@ -700,21 +700,9 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 			while (matcher.lookingAt()) {
 				CharSequence link = value.subSequence(matcher.start(1), matcher.end(1));
 				matcher.region(matcher.end(), matcher.regionEnd());
-				// try split by | BnF case 2023
-				String[] urls = link.toString().split("[\\|]");
-				if (urls.length > 1) {
-					for (String url : urls) {
-						CharSequence newLink = url;
-						logger.log(Level.FINER, "Found {0} splitting by |.", newLink);
-						addLinkFromString(curi, newLink, context, hop);
-						numberOfLinksExtracted.incrementAndGet();
-					}
-				} //
-				else {
-					logger.log(Level.FINER, "Found {0} adding to outlinks.", link);
-					addLinkFromString(curi, link, context, hop);
-					numberOfLinksExtracted.incrementAndGet();
-				}
+				logger.log(Level.FINER, "Found {0} adding to outlinks.", link);
+				addLinkFromString(curi, link, context, hop);
+				numberOfLinksExtracted.incrementAndGet();
 			}
 
 			TextUtils.recycleMatcher(matcher);

@@ -748,11 +748,11 @@ public class ExtractorHTMLTest extends StringExtractorTestBase {
 
         CharSequence cs = "<img class=\"b-lazy image-large\" \n"
         		+ "src=\"data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==\"\n"
-        		+ "data-src-small=\"http://www.104.fr/cache/media/visuels-generaux/bandeau-home/c80-468ffd.jpg|"
+        		+ "data-src-small=\"http://www.104.fr/cache/media/visuels-generaux/bandeau-home/c80-468ffd.jpg, "
         		+ "http://www.104.fr/cache/media/visuels-generaux/bandeau-home/c233-f551d3.jpg\" \n"
-        		+ "data-src-medium=\"http://www.104.fr/cache/media/visuels-generaux/bandeau-home/c80-af15f9.jpg|"
+        		+ "data-src-medium=\"http://www.104.fr/cache/media/visuels-generaux/bandeau-home/c80-af15f9.jpg, "
         		+ "http://www.104.fr/cache/media/visuels-generaux/bandeau-home/c18029b.jpg\" \n"
-        		+ "data-src=\"http://www.104.fr/cache/media/visuels-generaux/bandeau-home/c8f5db0.jpg|"
+        		+ "data-src=\"http://www.104.fr/cache/media/visuels-generaux/bandeau-home/c8f5db0.jpg, "
         		+ "http://www.104.fr/cache/media/visuels-generaux/bandeau-home/c84eebf.jpg\" \n"
         		+ "alt=\"\"/>";
 
