@@ -168,12 +168,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>net.java.dev.jna</groupId>
-			<artifactId>jna</artifactId>
-			<version>3.2.3</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.netpreserve.commons</groupId>
 			<artifactId>webarchive-commons</artifactId>
 			<version>1.1.8</version>
@@ -187,7 +181,7 @@
 		<dependency>
 			<groupId>com.jcraft</groupId>
 			<artifactId>jsch</artifactId>
-			<version>0.1.52</version>
+			<version>0.1.54</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -242,6 +236,6 @@
 	</build>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>5.3.3</spring.version>
+		<spring.version>5.3.20</spring.version>
 	</properties>
 </project>

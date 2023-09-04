@@ -20,16 +20,23 @@
 package org.archive.modules.extractor;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import com.google.common.base.Ascii;
 import org.apache.commons.httpclient.URIException;
+import org.apache.commons.io.IOUtils;
 import org.archive.io.ReplayCharSequence;
 import org.archive.modules.CoreAttributeConstants;
 import org.archive.modules.CrawlMetadata;
@@ -75,6 +82,9 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 
 	public final static String A_FORM_OFFSETS = "form-offsets";
 
+    // As per https://infra.spec.whatwg.org/#ascii-whitespace
+    private final static Pattern ASCII_WHITESPACE = Pattern.compile("[\t\n\f\r ]+");
+
 	{
 		setMaxElementLength(64);
 	}
@@ -89,7 +99,7 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 
 	/**
 	 * Relevant tag extractor.
-	 * 
+	 *
 	 * <p>
 	 * This pattern extracts either:
 	 * </p>
@@ -113,12 +123,12 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 	 * <li>7: META
 	 * <li>8: !-- comment --
 	 * </ul>
-	 * 
+	 *
 	 * <p>
 	 * HER-1998 - Modified part 8 to allow conditional html comments. Conditional
 	 * HTML comment example: "&lt;!--[if expression]> HTML &lt;![endif]-->"
 	 * </p>
-	 * 
+	 *
 	 * <p>
 	 * This technique is commonly used to reference CSS &amp; JavaScript that are
 	 * designed to deal with the quirks of a specific version of Internet Explorer.
@@ -126,7 +136,7 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 	 * the regex since it doesn't start with "&lt;!--" Ex. &lt;!if expression> HTML
 	 * &lt;!endif>
 	 * </p>
-	 * 
+	 *
 	 * <p>
 	 * https://en.wikipedia.org/wiki/Conditional_Comments
 	 * </p>
@@ -388,7 +398,12 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 		CharSequence valueContext = null;
 		CharSequence nameVal = null;
 
-		final boolean framesAsEmbeds = getTreatFramesAsEmbedLinks();
+        // Just in case it's a LINK tag
+        CharSequence linkHref = null;
+        CharSequence linkRel = null;
+
+        final boolean framesAsEmbeds =
+            getTreatFramesAsEmbedLinks();
 
 		final boolean ignoreFormActions = getIgnoreFormActionUrls();
 
@@ -414,8 +429,10 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 					context = elementContext(element, attr.group(2));
 				}
 
-				if ("a[data-remote='true']/@href".equals(context) || elementStr.equalsIgnoreCase(LINK)) {
-					// <LINK> elements treated as embeds (css, ico, etc)
+                if (elementStr.equalsIgnoreCase(LINK)) {
+                    // delay handling LINK until the end as we need both HREF and REL
+                    linkHref = value;
+                } else if ("a[data-remote='true']/@href".equals(context)) {
 					processEmbed(curi, value, context);
 				} else {
 					// other HREFs treated as links
@@ -503,14 +520,16 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 				method = value;
 				// form processing finished at end (after ACTION also collected)
 			} else if (attr.start(13) > -1) {
-				if ("NAME".equalsIgnoreCase(attrName.toString())) {
+                if (Ascii.equalsIgnoreCase(attrName, "NAME")) {
 					// remember 'name' for end-analysis
 					nameVal = value;
-				}
-				if ("FLASHVARS".equalsIgnoreCase(attrName.toString())) {
+                } else if (Ascii.equalsIgnoreCase(attrName, "FLASHVARS")) {
 					// consider FLASHVARS attribute immediately
 					valueContext = elementContext(element, attr.group(13));
 					considerQueryStringValues(curi, value, valueContext, Hop.SPECULATIVE);
+                } else if (Ascii.equalsIgnoreCase(attrName, "REL")) {
+                    // remember 'rel' for end-analysis
+                    linkRel = value;
 				}
 
 				// 2023 updates get img or source data attr
@@ -567,6 +586,11 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 			}
 		}
 
+        // finish handling LINK now both HREF and REL should be available
+        if (linkHref != null && linkRel != null) {
+            processLinkTagWithRel(curi, linkHref, linkRel);
+        }
+
 		// finish handling form action, now method is available
 		if (action != null) {
 			if (method == null || "GET".equalsIgnoreCase(method.toString()) || !getExtractOnlyFormGets()) {
@@ -591,11 +615,43 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 		}
 	}
 
+    // see: https://html.spec.whatwg.org/multipage/links.html#linkTypes
+    protected void processLinkTagWithRel(CrawlURI curi, CharSequence href, CharSequence rel) {
+        boolean emitAsNavLink = false;
+        for (String keyword : ASCII_WHITESPACE.split(rel)) {
+            String linkType = keyword.toLowerCase(Locale.ROOT);
+            switch (linkType) {
+                case "icon":
+                case "stylesheet":
+                case "modulepreload":
+                case "prefetch":
+                case "prerender":
+                    // treat as an embedded resource
+                    processEmbed(curi, href, "link[rel='" + linkType + "']/@href");
+                    return;
+                case "pingback":
+                    // don't extract pingbacks
+                    return;
+                case "dns-prefetch":
+                case "preconnect":
+                case "":
+                    // ignore connection hints
+                    break;
+                default:
+                    // treat anything else as a navigation link
+                    emitAsNavLink = true;
+            }
+        }
+        if (emitAsNavLink) {
+            processLink(curi, href, "link/@href");
+        }
+    }
+
 	/**
 	 * Consider a query-string-like collections of key=value[&amp;key=value] pairs
 	 * for URI-like strings in the values. Where URI-like strings are found, add as
 	 * discovered outlink.
-	 * 
+	 *
 	 * @param curi         origin CrawlURI
 	 * @param queryString  query-string-like string
 	 * @param valueContext page context where found
@@ -643,7 +699,7 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 
 	/**
 	 * Handle generic HREF cases.
-	 * 
+	 *
 	 * @param curi
 	 * @param value
 	 * @param context
@@ -822,7 +878,7 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 
 	/**
 	 * Run extractor. This method is package visible to ease testing.
-	 * 
+	 *
 	 * @param curi CrawlURI we're processing.
 	 * @param cs   Sequence from underlying ReplayCharSequence. This is TRANSIENT
 	 *             data. Make a copy if you want the data to live outside of this
@@ -930,7 +986,7 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 
 	/**
 	 * Process metadata tags.
-	 * 
+	 *
 	 * @param curi CrawlURI we're processing.
 	 * @param cs   Sequence from underlying ReplayCharSequence. This is TRANSIENT
 	 *             data. Make a copy if you want the data to live outside of this
@@ -997,7 +1053,7 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 
 	/**
 	 * Process style text.
-	 * 
+	 *
 	 * @param curi         CrawlURI we're processing.
 	 * @param sequence     Sequence from underlying ReplayCharSequence. This is
 	 *                     TRANSIENT data. Make a copy if you want the data to live
@@ -1016,12 +1072,67 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 	/**
 	 * Create a suitable XPath-like context from an element name and optional
 	 * attribute name.
-	 * 
+	 *
 	 * @param element
 	 * @param attribute
 	 * @return CharSequence context
 	 */
 	public static CharSequence elementContext(CharSequence element, CharSequence attribute) {
-		return attribute == null ? "" : element + "/@" + attribute;
+        return attribute == null? "": (element + "/@" + attribute).toLowerCase(Locale.ROOT);
+    }
+
+    public static void main(String[] args) throws Exception {
+        String url = null;
+        CrawlMetadata metadata = new CrawlMetadata();
+
+        for (int i = 0; i < args.length; i++) {
+            if (!args[i].startsWith("-")) {
+                url = args[i];
+                continue;
+            }
+            switch (args[i]) {
+                case "-h":
+                case "--help":
+                    System.out.println("Usage: ExtractorHTML [options] URL");
+                    System.out.println("Extracts and prints links from the given URL");
+                    System.out.println("");
+                    System.out.println("Options:");
+                    System.out.println("  --robots POLICY    Policy for robots meta tags " +
+                            RobotsPolicy.STANDARD_POLICIES.keySet());
+                    System.exit(0);
+                    break;
+                case "--robots":
+                    metadata.setRobotsPolicyName(args[++i]);
+                    break;
+                default:
+                    System.err.println("ExtractorHTML: Unknown option: " + args[i]);
+                    System.err.println("Try --help for usage information.");
+                    System.exit(1);
+            }
+        }
+
+        if (url == null) {
+            System.err.println("ExtractorHTML: No URL specified.");
+            System.err.println("Try --help for usage information.");
+            System.exit(1);
+        }
+
+        CrawlURI curi = new CrawlURI(UURIFactory.getInstance(url));
+
+        metadata.afterPropertiesSet();
+
+        ExtractorHTML extractor = new ExtractorHTML();
+        extractor.setExtractorJS(new ExtractorJS());
+        extractor.setMetadata(metadata);
+        extractor.afterPropertiesSet();
+
+        String content;
+        try (InputStream stream = new URL(url).openStream()) {
+            content = IOUtils.toString(stream, StandardCharsets.ISO_8859_1);
+        }
+        extractor.extract(curi, content);
+        for (CrawlURI link : curi.getOutLinks()) {
+            System.out.println(link.getURI() + " " + link.getLastHop() + " " + link.getViaContext());
+        }
 	}
 }

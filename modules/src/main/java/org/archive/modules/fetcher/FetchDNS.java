@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 import org.apache.commons.httpclient.URIException;
+import org.apache.commons.lang.StringUtils;
 import org.archive.modules.CrawlURI;
 import org.archive.modules.Processor;
 import org.archive.modules.net.CrawlHost;
@@ -46,6 +47,7 @@ import org.archive.util.Recorder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xbill.DNS.ARecord;
 import org.xbill.DNS.DClass;
+import org.xbill.DNS.DohResolver;
 import org.xbill.DNS.Lookup;
 import org.xbill.DNS.Record;
 import org.xbill.DNS.ResolverConfig;
@@ -116,6 +118,19 @@ public class FetchDNS extends Processor {
     public void setDisableJavaDnsResolves(boolean disableJavaDnsResolves) {
         kp.put("disableJavaDnsResolves",disableJavaDnsResolves);
     }
+
+    public String getDnsOverHttpServer() {
+        return (String) kp.get("dnsOverHttpServer");
+    }
+    /**
+     * URL to the DNS-on-HTTP(S) server.
+     * If this not set or set to an empty string, no DNS-over-HTTP(S)
+     * will be used; otherwise if should contain the URL to the
+     * DNS-over-HTTPS server.
+     */
+    public void setDnsOverHttpServer(String dnsOverHttpServer) {
+        kp.put("dnsOverHttpServer", dnsOverHttpServer);
+    }
     
     /**
      * Used to do DNS lookups.
@@ -164,8 +179,8 @@ public class FetchDNS extends Processor {
     protected boolean shouldProcess(CrawlURI curi) {
         return curi.getUURI().getScheme().equals("dns");
     }
-    
-    
+
+
     protected void innerProcess(CrawlURI curi) {
         Record[] rrecordSet = null; // Retrieved dns records
         String dnsName = null;
@@ -195,7 +210,7 @@ public class FetchDNS extends Processor {
         // If we have not disabled JavaDNS, use that:
         if (!getDisableJavaDnsResolves()) {
             try {
-                rrecordSet = (new Lookup(lookupName, TypeType, ClassType)).run();
+                rrecordSet = createDNSLookup(lookupName).run();
             } catch (TextParseException e) {
                 rrecordSet = null;
             }
@@ -379,5 +394,23 @@ public class FetchDNS extends Processor {
             break;
         }
         return arecord;
+    }
+
+    protected Lookup createDNSLookup(String lookupName)
+            throws TextParseException {
+        Lookup lookup = new Lookup(lookupName, TypeType, ClassType);
+
+        String dohServer = getDnsOverHttpServer();
+        if (StringUtils.isNotEmpty(dohServer)) {
+            if (logger.isLoggable(Level.FINER)) {
+                logger.log(Level.FINER,
+                        "use dns on http with server " + dohServer);
+            }
+
+            DohResolver hts = new DohResolver(dohServer);
+            lookup.setResolver(hts);
+        }
+
+        return lookup;
     }
 }

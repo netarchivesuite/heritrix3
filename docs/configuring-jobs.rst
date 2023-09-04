@@ -76,11 +76,13 @@ Robots.txt Honoring Policy
 The valid values of "robotsPolicyName" are:
 
 obey
-    Obey robots.txt directives
+    Obey robots.txt directives and nofollow robots meta tags
 classic
     Same as "obey"
+robotsTxtOnly
+    Obey robots.txt directives but ignore robots meta tags
 ignore
-    Ignore robots.txt directives
+    Ignore robots.txt directives and robots meta tags
 
 .. code-block:: xml
 
@@ -89,6 +91,18 @@ ignore
        <property name="robotsPolicyName" value="obey"/>
    ...
    </bean>
+
+.. note::
+
+   Heritrix currently only supports wildcards (*) at the end of paths in robots.txt rules.
+
+   The only supported value for robots meta tags is "nofollow" which will cause the HTML extractor to stop processing
+   and ignore all links (including embeds like images and stylesheets). Heritrix does not support "rel=nofollow" on
+   individual links.
+
+   .. code-block:: html
+
+       <meta name="robots" content="nofollow"/>
 
 Crawl Scope
 -----------
@@ -146,7 +160,7 @@ Decide Rules
 :deciderule:`ClassKeyMatchesRegexDecideRule`
     This DecideRule applies the configured decision to any URI class key that matches the supplied regular expression.  A URI class key is a string that specifies the name of the Frontier queue into which a URI should be placed.
 :deciderule:`ContentTypeMatchesRegexDecideRule`
-    This DecideRule applies the configured decision to any URI whose content-type is present and matches the supplied regular expression.
+    This DecideRule applies the configured decision to any URI whose content-type is present and matches the supplied regular expression. The regular expression must match the full content-type sequence. Ex.: ``s/application/javascript;charset=UTF-8/^application\/javascript.*$/g``; ``s/text/html/^.*\/html.*$/g``
 :deciderule:`ContentTypeNotMatchesRegexDecideRule`
     This DecideRule applies the configured decision to any URI whose content-type does not match the supplied regular expression.
 :deciderule:`FetchStatusMatchesRegexDecideRule`
@@ -383,8 +397,108 @@ requests.
       </property>
     </bean>
 
+Authentication and Cookies
+--------------------------
+
+Heritrix can crawl sites behind login by using HTTP authentication, submitting a form or by loading cookies from a file.
+
+Credential Store
+~~~~~~~~~~~~~~~~
+
+Credentials can be added so that Heritrix can gain access to areas of web sites requiring authentication. Credentials
+need to listed in a CredentialStore.
+
+.. code-block:: xml
+
+    <bean id="credentialStore" class="org.archive.modules.credential.CredentialStore">
+      <property name="credentials">
+        <map>
+          <entry key="exampleHttpCredential" value-ref="exampleHttpCredential"/>
+          <entry key="exampleFormCredential" value-ref="exampleFormCredential"/>
+        </map>
+      </property>
+    </bean>
+
+To enable text console logging of authentication interactions, set the FetchHTTP and PreconditionEnforcer log levels to
+fine in ``conf/logging.properties``:
+
+.. code-block::
+
+    org.archive.crawler.fetcher.FetchHTTP.level = FINE
+    org.archive.crawler.prefetch.PreconditionEnforcer.level = FINE
+
+HTTP Basic and Digest Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In response to a 401 Unauthorized response code Heritrix will do a lookup of a key based on the domain and
+authentication realm in its CredentialStore. If a match is found, then the credential is loaded into the CrawlURI and
+the CrawlURI is marked for immediate retry.
+
+When the CrawlURI is retried, the found credentials are added to the request. If the request succeeds with a 200
+response code, the credentials are promoted to the CrawlServer and all subsequent requests made against the CrawlServer
+will preemptively volunteer the credential. If the credential fails with a 401 response code, the URI is no longer
+retried.
+
+The configured domain should be of the form "hostname:port" unless the port is 80 in which case it must be omitted. For
+HTTPS URLs without an explicit port use port 443.
+
+.. code-block:: xml
+
+    <bean id="exampleHttpCredential" class="org.archive.modules.credential.HttpAuthenticationCredential">
+      <property name="domain" value="www.example.org:443"/>
+      <property name="realm" value="myrealm"/>
+      <property name="login" value="user"/>
+      <property name="password" value="secret"/>
+    </bean>
+
+HTML Form Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Heritrix can be configured to submit credentials to a HTML form using a GET or POST request.
+
+.. code-block:: xml
+
+    <bean id="exampleFormCredential" class="org.archive.modules.credential.HtmlFormCredential">
+      <property name="domain" value="example.com"/>
+      <property name="loginUri" value="http://example.com/login"/>
+      <property name="formItems">
+        <map>
+          <entry key="login" value="user"/>
+          <entry key="password" value="secret"/>
+          <entry key="submit" value="submit"/>
+        </map>
+      </property>
+    </bean>
+
+domain
+    The domain should be of the form "hostname:port" unless the port is 80 in which case it must be omitted. For
+    HTTPS URLs without an explicit port use port 443.
+
+login-uri
+    A relative or absolute URI to which the HTML Form submits. It is not necessarily the page that contains the HTML
+    Form; rather it is the ACTION URI the to which the form submits.
+
+form-items
+    Form-items are a listing of HTML Form key/value pairs. The submit button usually must be included in the form-items.
+
+.. note::
+
+  There is currently no support for successfully submitting forms with dynamic fields whose required name or value
+  changes for each visitor (such as CSRF tokens).
+
+  For a site with an HTML Form credential, a login is performed against all listed HTML Form credential login-uris
+  after the DNS and robots.txt preconditions are fulfilled.  The crawler will only view sites that have HTML Form
+  credentials from a logged-in perspective.  There is no current way for a single Heritrix job to crawl a site in an
+  unauthenticated state and then re-crawl the site in an authenticated state. (You would have to do this in two
+  separately-configured job launches.)
+
+  The form login is only run once.  Heritrix continues crawling regardless of whether the login succeeds. There is no
+  way of telling Heritrix to retry authentication if the first attempt is not successful.  Neither is there a means for
+  the crawler to report success or failed authentications.  The crawl operator should examine the logs to determine
+  whether authentication succeeded.
+
 Loading Cookies
----------------
+~~~~~~~~~~~~~~~
 
 Heritrix can be configured to load a set of cookies from a file. This can be used for example to crawl a website behind
 a login form by manually logging in through the browser and then copying the session cookie.
@@ -557,3 +671,75 @@ Scripting Console
 
 [This section to be written. For now see the
 `Heritrix3 Useful Scripts <https://github.com/internetarchive/heritrix3/wiki/Heritrix3%20Useful%20Scripts>`_ wiki page.]
+
+
+Configuring HTTP Proxies
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are two options to specify a proxy for crawling.
+
+The command line options ``--proxy-host`` and ``--proxy-port`` can be used to define a proxy for all jobs.
+If only the ``--proxy-host`` option is given, a default value of 8000 is used for the proxy port.
+These proxy settings are also used when connecting to a "DNS-over-HTTP" server
+(see the `section on DNS-over-HTTP <#configuring-dns-over-http-doh>`_ below).
+
+Alternatively one can define a per-job proxy via a the ``httpProxyHost`` and ``httpProxyPort`` properties of the
+``fetchHttp`` bean. These settings, if both defined, will overwrite the global options. These setting also allow for
+a user and password in the ``httpProxyUser`` and ``httpProxyPassword`` properties, which the global options do not
+support, due to incompatibilities of the different supported Java versions.
+
+Also the optional "SOCKS5" proxy documented in the next section is used on a per-job basis; there are currently no
+global options to define it.
+
+Configuring SOCKS5 Proxy
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+An optional configuration value to route Heritrix crawler traffic through a SOCKS5 proxy. This will override any set
+HTTP proxy configuration. It is facilitated by extending the `org.archive.modules.fetcher.FetchHTTP` bean with
+`socksProxyHost` and `socksProxyPort` values, as in the example below:
+
+.. code-block:: xml
+
+    <bean class="org.archive.modules.fetcher.FetchHTTP" id="fetchHttp">
+        <!--  ... -->
+        <property name="socksProxyHost" value="127.0.0.1"/>
+        <property name="socksProxyPort" value="24000"/>
+    </bean>
+
+Configuring DNS over HTTP (DoH)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the local DNS on the server running Heritrix is not able to resolve the DNS names of the crawled sites, e.g. because
+the server is sitting behind an enterprise firewall and can only resolve names of the local network, then using
+DNS-over-HTTP (DoH) might be an alternative to fetch DNS information.
+
+To activate this, one needs to set the ``dnsOverHttpServer`` setting of the ``fetchDns`` bean to the URL of an DoH server.
+If one has configured a global proxy via the ``--proxy-host`` and ``--proxy-port`` command line options,
+these proxy settings will be used to contact the DoH server as well. However due to limitation of the library in use,
+username and password information for the proxy are not supported. Also any per-job defined proxy settings in the
+``fetchHttp`` bean are not used when contacting the DoH server.
+
+As the implementation relies on the corresponding client in the "dnsjava" library, which is currently labeled as
+experimental, this option comes with some limitations:
+
+* If you use Java 11 then due to a `well known bug <https://bugs.openjdk.java.net/browse/JDK-8221395>`_ it will not
+  close connections to the DoH server unless Heritrix shuts down.
+  As the DoH server might not accept new connections after some limits while these connections are still open, it is
+  not recommended to use this feature when running Heritrix with Java 11.
+* For other Java versions, the connection to the DoH server will be closed when the garbage collector runs.
+  Depending on the garbage collector used this will cause a delay of anything between a few seconds and several
+  minutes before closing the connection. Also note that if the garbage collector is explicitely triggered via the
+  Heritrix UI one needs to add the ``-XX:-DisableExplicitGC`` option in the ``JAVA_OPTS`` for Java versions 13 and up
+  as otherwise this action has no effect.
+
+Without making a recommendation the following DoH servers have been tested with the DoH feature:
+
+* https://dns.google/dns-query
+* https://cloudflare-dns.com/dns-query
+
+However servers implementing the official `RFC 8484 <https://tools.ietf.org/html/rfc8484>`_ specification
+unfortunately do not work with the current implementation. This includes e.g. the following server:
+
+* https://dns.digitale-gesellschaft.ch/dns-query
+
+This limitation might be overcome by a newer version of the "dnsjava" library.

@@ -33,10 +33,7 @@ import org.archive.util.UriUtils;
 import org.json.JSONArray;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.SequenceInputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -45,6 +42,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -80,6 +79,7 @@ import static org.archive.modules.CrawlURI.FetchType.*;
  */
 public class ExtractorChrome extends ContentExtractor {
     private static final Logger logger = Logger.getLogger(ExtractorChrome.class.getName());
+    private static final AtomicLong nextRecorderId = new AtomicLong();
 
     private static final Pattern TRANSFER_ENCODING_RE = Pattern.compile("\r\nTransfer-Encoding:[^\n\r]+", CASE_INSENSITIVE);
 
@@ -95,9 +95,15 @@ public class ExtractorChrome extends ContentExtractor {
     private String devtoolsUrl = null;
 
     /**
-     * The name or path to the browser executable. If null common locations will be searched.
+     * The name or path to the browser executable. If null common locations will be searched. Not used if devtoolsUrl
+     * is set.
      */
     private String executable = null;
+
+    /**
+     * Extra command-line options passed to the browser process. Not used if devtoolsUrl is null.
+     */
+    private List<String> commandLineOptions = new ArrayList<>();
 
     /**
      * Width of the browser window.
@@ -140,11 +146,12 @@ public class ExtractorChrome extends ContentExtractor {
 
     @Override
     protected boolean shouldExtract(CrawlURI uri) {
-        return uri.getContentType().startsWith("text/html");
+        return uri.getContentType().startsWith("text/html") && uri.is2XXSuccess();
     }
 
     @Override
     protected boolean innerExtract(CrawlURI uri) {
+        ensureConnected();
         try {
             openWindowsSemaphore.acquire();
             try {
@@ -231,9 +238,9 @@ public class ExtractorChrome extends ContentExtractor {
             return;
         }
 
-        Recorder recorder = new Recorder(controller.getScratchDir().getFile(),
-                controller.getRecorderOutBufferBytes(),
-                controller.getRecorderInBufferBytes());
+        String recorderBaseName = "ExtractorChrome-" + nextRecorderId.getAndIncrement();
+        Recorder recorder = new Recorder(new File(controller.getScratchDir().getFile(), recorderBaseName),
+                controller.getRecorderOutBufferBytes(), controller.getRecorderInBufferBytes());
         try {
             String digestAlgorithm = "sha1";
             recorder.getRecordedInput().setDigest(digestAlgorithm);
@@ -321,15 +328,11 @@ public class ExtractorChrome extends ContentExtractor {
         if (isRunning) return;
         super.start();
         openWindowsSemaphore = new Semaphore(maxOpenWindows);
-        if (devtoolsUrl != null) {
-            client = new ChromeClient(devtoolsUrl);
-        } else {
-            try {
-                process = new ChromeProcess(executable);
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to launch browser process", e);
-            }
-            client = new ChromeClient(process.getDevtoolsUrl());
+
+        // If we're enabled by default launch the browser now to get early feedback if there's a connection error.
+        // Otherwise, we launch it on demand so that we don't create browser processes for jobs that don't need it.
+        if (getEnabled()) {
+            ensureConnected();
         }
 
         if (extractorChain == null) {
@@ -344,6 +347,20 @@ public class ExtractorChrome extends ContentExtractor {
             }
             extractorChain = new ProcessorChain();
             extractorChain.setProcessors(extractors);
+        }
+    }
+
+    private synchronized void ensureConnected() {
+        if (client != null) return;
+        if (devtoolsUrl != null) {
+            client = new ChromeClient(devtoolsUrl);
+        } else {
+            try {
+                process = new ChromeProcess(executable, commandLineOptions);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to launch browser process", e);
+            }
+            client = new ChromeClient(process.getDevtoolsUrl());
         }
     }
 
@@ -406,5 +423,13 @@ public class ExtractorChrome extends ContentExtractor {
 
     public void setLoadTimeoutSeconds(int loadTimeoutSeconds) {
         this.loadTimeoutSeconds = loadTimeoutSeconds;
+    }
+
+    public List<String> getCommandLineOptions() {
+        return commandLineOptions;
+    }
+
+    public void setCommandLineOptions(List<String> commandLineOptions) {
+        this.commandLineOptions = commandLineOptions;
     }
 }
