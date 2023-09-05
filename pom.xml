@@ -18,7 +18,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 	<groupId>org.archive</groupId>
 	<!--This project is parent to all under 'projects' subdirectory-->
 	<artifactId>heritrix</artifactId>
-	<version>  3.4.0-NAS-7.4.4-SNAPSHOT</version>
+	<version>  3.40-NAS-7.5</version>
 	<packaging>pom</packaging>
 	<name>Heritrix 3</name>
 	<description>
@@ -192,7 +192,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 		<url>https://github.com/netarchivesuite/heritrix3</url>
 		<connection>scm:git:https://github.com/netarchivesuite/heritrix3.git</connection>
 		<developerConnection>scm:git:git@github.com:netarchivesuite/heritrix3.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>heritrix-3.40-NAS-7.5</tag>
 	</scm>
 
 	<developers>
