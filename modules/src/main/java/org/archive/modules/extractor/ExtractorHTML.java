@@ -330,6 +330,19 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 		kp.put("ignoreUnexpectedHtml",ignoreUnexpectedHtml);
 	}
 
+    {
+        setObeyRelNofollow(false);
+    }
+    public boolean getObeyRelNofollow() {
+        return (Boolean) kp.get("obeyRelNofollow");
+    }
+    /**
+     * If true links containing the "rel=nofollow" directive will not be extracted.
+     */
+    public void setObeyRelNofollow(boolean obeyRelNofollow) {
+        kp.put("obeyRelNofollow", obeyRelNofollow);
+    }
+
 	/**
 	 * CrawlMetadata provides the robots honoring policy to use when
 	 * considering a robots META tag.
@@ -397,9 +410,10 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 		CharSequence valueContext = null;
 		CharSequence nameVal = null;
 
-		// Just in case it's a LINK tag
+        // Just in case it's an A or LINK tag
 		CharSequence linkHref = null;
 		CharSequence linkRel = null;
+        CharSequence linkContext = null;
 
 		final boolean framesAsEmbeds =
 				getTreatFramesAsEmbedLinks();
@@ -431,9 +445,12 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 					context = elementContext(element, attr.group(2));
 				}
 
-				if (elementStr.equalsIgnoreCase(LINK)) {
-					// delay handling LINK until the end as we need both HREF and REL
+
+                if ((elementStr.equalsIgnoreCase(LINK) || elementStr.equalsIgnoreCase("a"))
+                    && linkHref == null) {
+                    // delay handling A and LINK until the end as we need both HREF and REL
 					linkHref = value;
+                    linkContext = context;
 				} else if ("a[data-remote='true']/@href".equals(context)) {
 					processEmbed(curi, value, context);
 				} else {
@@ -595,9 +612,20 @@ public class ExtractorHTML extends ContentExtractor implements InitializingBean 
 		}
 
 		// finish handling LINK now both HREF and REL should be available
-		if (linkHref != null && linkRel != null) {
+        if (linkHref != null) {
+            if (elementStr.equalsIgnoreCase(LINK)) {
+                if (linkRel != null) {
 			processLinkTagWithRel(curi, linkHref, linkRel);
 		}
+            } else {
+                if (linkRel != null && getObeyRelNofollow()
+                    && TextUtils.matches("(?i).*\\bnofollow\\b.*", linkRel)) {
+                    if (logger.isLoggable(Level.FINEST)) logger.finest("ignoring nofollow link: " + linkHref);
+                } else {
+                    processLink(curi, linkHref, linkContext);
+                }
+            }
+        }
 
 		// finish handling form action, now method is available
 		if(action != null) {

@@ -185,7 +185,8 @@ public class CrawlJobModel extends LinkedHashMap<String, Object> implements Seri
 	}
 
 	public String getLastLaunchTime() {
-		long ago = System.currentTimeMillis() - crawlJob.getLastLaunch().getMillis();
+        long ago = System.currentTimeMillis()
+                - crawlJob.getLastLaunch().toEpochMilli();
 		return ArchiveUtils.formatMillisecondsToConventional(ago, 2);
 	}
 
