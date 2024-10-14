@@ -813,6 +813,7 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
         this.httpRecorder = null;
         this.fetchStatus = S_UNATTEMPTED;
         this.setPrerequisite(false);
+        this.clearPrerequisiteUri();
         this.contentSize = UNCALCULATED;
         this.contentLength = UNCALCULATED;
         // Clear 'links extracted' flag.
@@ -1705,7 +1706,6 @@ implements Reporter, Serializable, OverlayContext, Comparable<CrawlURI> {
         kryo.autoregister(org.apache.commons.httpclient.NameValuePair.class);
         kryo.autoregister(org.apache.commons.httpclient.NameValuePair[].class);
         kryo.autoregister(FetchType.class);
-        kryo.setRegistrationOptional(true);
     }
     
     /**

@@ -18,7 +18,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 	<groupId>org.archive</groupId>
 	<!--This project is parent to all under 'projects' subdirectory-->
 	<artifactId>heritrix</artifactId>
-	<version>  3.4.0-NAS-7.5.1-SNAPSHOT</version>
+	<version>3.4.0-NAS-7.6-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Heritrix 3</name>
 	<description>
@@ -84,14 +84,14 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 	<pluginRepositories>
 		<pluginRepository>
 			<id>builds.archive.org,maven2</id>
-			<url>http://builds.archive.org/maven2</url>
+			<url>https://builds.archive.org/maven2</url>
 		</pluginRepository>
 	</pluginRepositories>
 
 	<repositories>
 		<repository>
 			<id>builds.archive.org,maven2</id>
-			<url>http://builds.archive.org/maven2</url>
+			<url>https://builds.archive.org/maven2</url>
 		</repository>
 		<repository>
 			<id>sbforge-nexus</id>
@@ -419,19 +419,27 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.22.2</version>
-				<configuration>
-					<argLine>-Xmx1g</argLine>
-					<systemPropertyVariables>
-						<testtmpdir>${project.build.directory}/heritrix-junit-tests</testtmpdir>
-						<heritrix.hostname>localhost</heritrix.hostname>
-					</systemPropertyVariables>
-				</configuration>
-			</plugin>
-		</plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.surefire</groupId>
+						<!-- Allow older junit3 style tests to be discovered -->
+						<artifactId>surefire-junit4</artifactId>
+						<version>2.22.2</version>
+					</dependency>
+				</dependencies>
+                <configuration>
+                    <argLine>-Xmx1g</argLine>
+                    <systemPropertyVariables>
+                        <testtmpdir>${project.build.directory}/heritrix-junit-tests</testtmpdir>
+                        <heritrix.hostname>localhost</heritrix.hostname>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+		</plugins>      
 	</build>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
