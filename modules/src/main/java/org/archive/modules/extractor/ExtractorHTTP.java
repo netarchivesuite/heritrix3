@@ -22,7 +22,7 @@ package org.archive.modules.extractor;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.httpclient.URIException;
+import org.archive.url.URIException;
 import org.archive.modules.CrawlURI;
 import org.archive.modules.CrawlURI.FetchType;
 import org.archive.net.UURI;
@@ -47,6 +47,7 @@ public class ExtractorHTTP extends Extractor {
      * @deprecated Deprecated in favor of {@link #getInferPaths()} which allows the specification of arbitrary
      *             paths and can be overridden with sheets. 
      */
+    @Deprecated
     public boolean getInferRootPage() {
         return inferRootPage;
     }
@@ -54,6 +55,7 @@ public class ExtractorHTTP extends Extractor {
      * @deprecated Deprecated in favor of {@link #setInferPaths(List)} which allows the specification of arbitrary
      *             paths and can be overridden with sheets. 
      */
+    @Deprecated
     public void setInferRootPage(boolean inferRootPage) {
         this.inferRootPage = inferRootPage;
     }

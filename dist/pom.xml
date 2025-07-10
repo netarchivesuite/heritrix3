@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.archive</groupId>
 		<artifactId>heritrix</artifactId>
-		<version> 3.7.0-NAS-7.8-SNAPSHOT</version>
+		<version>3.10.0-NAS-7.7</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.archive.heritrix</groupId>
@@ -17,10 +17,6 @@
 			<artifactId>heritrix-engine</artifactId>
 			<version>${project.version}</version>
 			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.archive.heritrix</groupId>
-			<artifactId>heritrix-contrib</artifactId>
 		</dependency>
 	</dependencies>
 

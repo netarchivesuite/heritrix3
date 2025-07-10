@@ -18,12 +18,7 @@
  */
 package org.archive.modules.extractor;
 
-import org.apache.commons.httpclient.URIException;
-import org.archive.modules.CrawlURI;
 import org.archive.modules.ProcessorTestBase;
-import org.archive.net.UURIFactory;
-
-import java.util.regex.Pattern;
 
 /**
  * Unit test for {@link ExtractorImpliedURI}.
@@ -32,6 +27,6 @@ import java.util.regex.Pattern;
  */
 public class ExtractorImpliedURITest extends ProcessorTestBase {
 
-
+    // TODO TESTME!
     
 }

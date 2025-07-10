@@ -28,14 +28,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
-import org.apache.commons.httpclient.URIException;
+import org.archive.url.URIException;
 import org.apache.commons.lang.StringUtils;
 import org.archive.modules.CrawlURI;
 import org.archive.modules.Processor;
@@ -268,8 +267,7 @@ public class FetchDNS extends Processor {
         try {
         	recordDNS(curi, rrecordSet);
             curi.setFetchStatus(S_DNS_SUCCESS);
-            final InetSocketAddress server = ResolverConfig.getCurrentConfig().server();
-            curi.setServerIP(server.getAddress().getHostAddress());
+            curi.setServerIP(ResolverConfig.getCurrentConfig().server().getAddress().getHostAddress());
         } catch (IOException e) {
         	logger.log(Level.SEVERE, "Failed store of DNS Record for " +
         		curi.toString(), e);
@@ -294,10 +292,10 @@ public class FetchDNS extends Processor {
 		}
 		try {
 			targetHost.setIP(InetAddress.getByAddress(dnsName, new byte[] {
-					(byte) (new Integer(matcher.group(1)).intValue()),
-					(byte) (new Integer(matcher.group(2)).intValue()),
-					(byte) (new Integer(matcher.group(3)).intValue()),
-					(byte) (new Integer(matcher.group(4)).intValue()) }),
+					(byte) Integer.parseInt(matcher.group(1)),
+					(byte) Integer.parseInt(matcher.group(2)),
+					(byte) Integer.parseInt(matcher.group(3)),
+					(byte) Integer.parseInt(matcher.group(4)) }),
 					CrawlHost.IP_NEVER_EXPIRES); // Never expire numeric IPs
 			curi.setFetchStatus(S_DNS_SUCCESS);
 		} catch (UnknownHostException e) {
