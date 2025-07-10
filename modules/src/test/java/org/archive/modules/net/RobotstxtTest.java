@@ -25,11 +25,14 @@ import java.io.StringReader;
 
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import junit.framework.TestCase;
 
 import org.archive.bdb.AutoKryo;
+import org.junit.jupiter.api.Test;
 
-public class RobotstxtTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.*;
+
+public class RobotstxtTest {
+    @Test
     public void testParseRobots() throws IOException {
         Reader reader = new StringReader("BLAH");
         Robotstxt r = new Robotstxt(reader);
@@ -103,12 +106,14 @@ public class RobotstxtTest extends TestCase {
             );
         return new Robotstxt(reader); 
     }
-    
+
+    @Test
     public void testValidRobots() throws IOException {
         Robotstxt r = sampleRobots1();
         evalRobots(r); 
     }
-    
+
+    @Test
     public void testWhitespaceFlawedRobots() throws IOException {
         Robotstxt r = whitespaceFlawedRobots();
         evalRobots(r); 
@@ -126,7 +131,7 @@ public class RobotstxtTest extends TestCase {
         // bot denied with specific disallow overriding general allow
         assertFalse(r.getDirectivesFor("Mozilla allowbot2 99.9").allows("/foo"));
         // HER-1976: query-string disallow
-        assertFalse("ignoring query-string", r.getDirectivesFor("Mozilla allowbot2 99.9").allows("/ok?butno=something"));
+        assertFalse(r.getDirectivesFor("Mozilla allowbot2 99.9").allows("/ok?butno=something"), "ignoring query-string");
         
         // bot denied with blanket deny
         assertFalse(r.getDirectivesFor("Mozilla denybot 99.9").allows("/path"));
@@ -137,10 +142,10 @@ public class RobotstxtTest extends TestCase {
         assertFalse(r.getDirectivesFor("Mozilla anonbot 99.9").allows("/cgi-bin/foo.pl"));
         
         // no crawl-delay
-        assertEquals(r.getDirectivesFor("Mozilla denybot 99.9").getCrawlDelay(),-1f);
+        assertEquals(-1f, r.getDirectivesFor("Mozilla denybot 99.9").getCrawlDelay());
         
         // with crawl-delay 
-        assertEquals(r.getDirectivesFor("Mozilla delaybot 99.9").getCrawlDelay(),20f);
+        assertEquals(20f, r.getDirectivesFor("Mozilla delaybot 99.9").getCrawlDelay());
     }
 
     Robotstxt htmlMarkupRobots() throws IOException {
@@ -162,8 +167,8 @@ public class RobotstxtTest extends TestCase {
     
     /**
      * Test handling of a robots.txt with extraneous HTML markup
-     * @throws IOException
      */
+    @Test
     public void testHtmlMarkupRobots() throws IOException {
         Robotstxt r = htmlMarkupRobots();
         assertFalse(r.getDirectivesFor("anybot").allows("/index.html"));
@@ -174,8 +179,8 @@ public class RobotstxtTest extends TestCase {
      * Improper behavior, such as failure to restore shared RobotsDirectives objects,
      * can lead to excess memory usage and CPU cycles. In one case, 450KB robots.txt
      * exploded into 450MB. See [HER-1912].
-     * @throws IOException
      */
+    @Test
     public void testCompactSerialization() throws IOException {
         AutoKryo kryo = new AutoKryo();
         kryo.autoregister(Robotstxt.class);
@@ -191,7 +196,7 @@ public class RobotstxtTest extends TestCase {
         {
             RobotsDirectives da = rt.getDirectivesFor("a", false);
             RobotsDirectives db = rt.getDirectivesFor("b", false);
-            assertTrue("user-agent a and b shares the same RobotsDirectives before serialization", da == db);
+            assertSame(da, db, "user-agent a and b shares the same RobotsDirectives before serialization");
         }
         Output buffer = new Output(1024, -1);
         kryo.writeObject(buffer, rt);
@@ -200,10 +205,11 @@ public class RobotstxtTest extends TestCase {
         {
             RobotsDirectives da = rt2.getDirectivesFor("a", false);
             RobotsDirectives db = rt2.getDirectivesFor("b", false);
-            assertTrue("user-agent a and b shares the same RobotsDirectives after deserialization", da == db);
+            assertSame(da, db, "user-agent a and b shares the same RobotsDirectives after deserialization");
         }
     }
 
+    @Test
     public void testSeparatedSections() throws IOException {
         final String TEST_ROBOTS_TXT = "User-agent: *\n"
                 + "Crawl-delay: 5\n"
@@ -226,6 +232,7 @@ public class RobotstxtTest extends TestCase {
         assertEquals(99f, rt.getDirectivesFor("a").getCrawlDelay());
     }
 
+    @Test
     public void testSizeLimit() throws IOException {
         StringBuilder builder = new StringBuilder(
                 "User-agent: a\n" +
@@ -236,19 +243,87 @@ public class RobotstxtTest extends TestCase {
         }
         builder.append("\nUser-Agent: c\nDisallow: /\n");
         Robotstxt rt = new Robotstxt(new StringReader(builder.toString()));
-        assertFalse("we should parse the first few lines",
-                rt.getDirectivesFor("a").allows("/foo"));
-        assertTrue("ignore the line that breaks the size limit",
-                rt.getDirectivesFor("b").allows("/foo"));
-        assertTrue("and also ignore any lines after the size limit",
-                rt.getDirectivesFor("c").allows("/foo"));
+        assertFalse(rt.getDirectivesFor("a").allows("/foo"),
+                "we should parse the first few lines");
+        assertTrue(rt.getDirectivesFor("b").allows("/foo"),
+                "ignore the line that breaks the size limit");
+        assertTrue(rt.getDirectivesFor("c").allows("/foo"),
+                "and also ignore any lines after the size limit");
     }
 
+    @Test
     public void testAllBlankLines() throws IOException {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < Robotstxt.MAX_SIZE; i++) {
             builder.append('\n');
         }
         new Robotstxt(new StringReader(builder.toString()));
+    }
+
+    @Test
+    public void testWildcards() throws IOException {
+        Robotstxt rt = new Robotstxt(new StringReader("""
+                User-Agent: *
+                Disallow: *.gif$
+                Disallow: /example/
+                Allow: /publications/
+                """));
+        assertTrue(rt.getDirectivesFor("x").allows("/"));
+        assertFalse(rt.getDirectivesFor("x").allows("/example/blocked"));
+        assertFalse(rt.getDirectivesFor("x").allows("/image.gif"));
+        assertTrue(rt.getDirectivesFor("x").allows("/image.gif?size=large"));
+        assertTrue(rt.getDirectivesFor("x").allows("/publications/image.gif"));
+
+        rt = new Robotstxt(new StringReader("""
+                User-Agent: *
+                allow: /a/*/c
+                disallow: /a/b/c
+                disallow: /a/bb/c
+                """));
+        assertTrue(rt.getDirectivesFor("x").allows("/a/b/c"));
+        assertFalse(rt.getDirectivesFor("x").allows("/a/bb/c"));
+
+        rt = new Robotstxt(new StringReader("""
+                User-Agent: *
+                allow: /a
+                disallow: /a
+                """));
+        assertTrue(rt.getDirectivesFor("x").allows("/a/b"));
+
+        rt = new Robotstxt(new StringReader("""
+                User-Agent: *
+                allow: /$
+                Disallow: /
+                """));
+        assertTrue(rt.getDirectivesFor("x").allows("/"));
+        assertFalse(rt.getDirectivesFor("x").allows("/a"));
+        assertFalse(rt.getDirectivesFor("x").allows("//"));
+
+        rt = new Robotstxt(new StringReader("""
+                User-Agent: *
+                Disallow: /foo*/bar
+                """));
+        assertFalse(rt.getDirectivesFor("x").allows("/foo/bar"));
+        assertFalse(rt.getDirectivesFor("x").allows("/fooooo/bar"));
+        assertTrue(rt.getDirectivesFor("x").allows("/fox/bar"));
+
+        rt = new Robotstxt(new StringReader("""
+                User-Agent: *
+                Disallow: /foo$/
+                Allow: /foo$
+                """));
+        assertFalse(rt.getDirectivesFor("x").allows("/foo$/"));
+        assertFalse(rt.getDirectivesFor("x").allows("/foo$/bar"));
+        assertTrue(rt.getDirectivesFor("x").allows("/foo$"));
+        assertTrue(rt.getDirectivesFor("x").allows("/foo"));
+
+        rt = new Robotstxt(new StringReader("""
+                User-Agent: *
+                Disallow: /*$
+                Allow: /*
+                """));
+        assertFalse(rt.getDirectivesFor("x").allows("/"));
+        assertFalse(rt.getDirectivesFor("x").allows("/a"));
+        assertFalse(rt.getDirectivesFor("x").allows("//"));
     }
 }

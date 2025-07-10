@@ -105,7 +105,7 @@ public class MatchesListRegexDecideRule extends PredicatedDecideRule {
             return false;
         }
 
-        final String str = uri.toString();
+        String str = uri.toString();
         boolean listLogicOR = getListLogicalOr();
 
         for (Pattern p: regexes) {

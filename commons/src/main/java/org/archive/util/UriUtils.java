@@ -32,9 +32,9 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 import org.apache.commons.codec.DecoderException;
-import org.apache.commons.httpclient.URIException;
 import org.archive.net.UURI;
 import org.archive.url.LaxURLCodec;
+import org.archive.url.URIException;
 
 
 /**
@@ -108,6 +108,7 @@ public class UriUtils {
      * @deprecated produces too many false positives,
      *             {@link #isVeryLikelyUri(CharSequence)} is preferred
      */
+    @Deprecated
     public static boolean isLikelyUri(CharSequence candidate) {
         return isPossibleUri(candidate) && !isLikelyFalsePositive(candidate);
     }
