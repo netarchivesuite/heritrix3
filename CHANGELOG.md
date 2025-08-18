@@ -4,16 +4,42 @@
 
 [Full Changelog](https://github.com/internetarchive/heritrix3/compare/3.10.0...HEAD)
 
+## [3.10.1](https://github.com/internetarchive/heritrix3/releases/tag/3.10.1)  (2025-07-21)
+
+[Download distribution zip](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.10.1/heritrix-3.10.1-dist.zip) (or [tar.gz](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.10.1/heritrix-3.10.1-dist.tar.gz))
+
+[Full Changelog](https://github.com/internetarchive/heritrix3/compare/3.10.0...3.10.1) | [Javadoc](https://www.javadoc.io/doc/org.archive.heritrix/heritrix-engine/3.10.1/index.html) | [Maven Central](https://search.maven.org/artifact/org.archive.heritrix/heritrix/3.10.1/pom)
+
 #### Bug fixes
 
 - **FetchHTTP2**
   - HTTP/1.1 is now used on servers that don't support ALPN. Fixes `IOException: frame_size_error/invalid_frame_length`
   - Fixed NullPointerException when the server's IP address isn't available. 
 
+- **Seeds report:** Redirect URIs are now recorded from the `Location` header for HTTP status codes `303 See other`, 
+ `307 Temporary Redirect` and `308 Permanent Redirect`.
+  Previously this was only done for `301 Moved Permanently` and `302 Found`. 
+
+- **Public suffixes list:** A resource naming conflict between webarchive-commons and crawler-commons for 
+  `effective_tld_names.dat` was resolved and the list was updated to the latest version. 
+
+#### Dependency upgrades
+
+- **codemirror@state**: 6.4.0 → 6.5.11 
+- **codemirror@view**: 6.37.1 → 6.37.2
+- **commons-lang**: 2.6 → 3.18.0
+- **commons-io**: 2.19.0 → 2.20.0
+- **crawler-commons**: 1.4 → 1.5
+- **jetty**: 12.0.17 → 12.0.22
+- **jsch**: 2.27.0 → 2.27.2
+- **junit-jupiter**: 5.13.2 → 5.13.3
+- **restlet**: 2.6.0-rc1 → 2.6.0
+- **spring**: 6.2.7 → 6.2.9
+- **webarchive-commons**: 2.0.1 → 3.0.0
+
 ## [3.10.0](https://github.com/internetarchive/heritrix3/releases/tag/3.10.0)  (2025-06-12)
 
-[Download distribution zip](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.10.0/heritrix-3.10.0-dist.zip) (
-or [tar.gz](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.10.0/heritrix-3.10.0-dist.tar.gz))
+[Download distribution zip](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.10.0/heritrix-3.10.0-dist.zip) (or [tar.gz](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.10.0/heritrix-3.10.0-dist.tar.gz))
 
 [Full Changelog](https://github.com/internetarchive/heritrix3/compare/3.9.0...3.10.0) | [Javadoc](https://www.javadoc.io/doc/org.archive.heritrix/heritrix-engine/3.10.0/index.html) | [Maven Central](https://search.maven.org/artifact/org.archive.heritrix/heritrix/3.10.0/pom)
 

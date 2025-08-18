@@ -19,7 +19,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 	<!--This project is parent to all under 'projects' subdirectory-->
 	<artifactId>heritrix</artifactId>
 
-	<version>3.10.0-NAS-7.8-SNAPSHOT</version>
+	<version>3.10.1-NAS-7.8-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Heritrix 3</name>
 	<description>
@@ -64,7 +64,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 		<repository>
 			<id>oracleReleases</id>
 			<name>Oracle Released Java Packages</name>
-			<url>http://download.oracle.com/maven</url>
+			<url>https://download.oracle.com/maven</url>
 			<releases>
 				<enabled>true</enabled>
 			</releases>
@@ -103,7 +103,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter</artifactId>
-				<version>5.13.1</version>
+				<version>5.13.3</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -385,7 +385,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 		<doclint>none</doclint>
 		<additionalparam>-Xdoclint:none</additionalparam>
 		<groovy.version>4.0.27</groovy.version>
-		<jetty.version>12.0.17</jetty.version>
+		<jetty.version>12.0.22</jetty.version>
 		<slf4j.version>2.0.17</slf4j.version>
 		<maven.compiler.target>17</maven.compiler.target>
 		<maven.compiler.source>17</maven.compiler.source>

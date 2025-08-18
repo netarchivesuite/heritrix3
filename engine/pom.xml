@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>org.archive</groupId>
 		<artifactId>heritrix</artifactId>
-		<version>3.10.0-NAS-7.8-SNAPSHOT</version>
+		<version>3.10.1-NAS-7.8-SNAPSHOT</version>
 	</parent>
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.archive.heritrix</groupId>
@@ -139,7 +139,7 @@
 		<dependency>
 			<groupId>org.webjars.npm</groupId>
 			<artifactId>codemirror__search</artifactId>
-			<version>6.4.0</version>
+			<version>6.5.11</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars.npm</groupId>
@@ -149,7 +149,7 @@
 		<dependency>
 			<groupId>org.webjars.npm</groupId>
 			<artifactId>codemirror__view</artifactId>
-			<version>6.37.1</version>
+			<version>6.37.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.webjars.npm</groupId>
@@ -215,6 +215,6 @@
 	</build>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<restlet.version>2.6.0-rc1</restlet.version>
+		<restlet.version>2.6.0</restlet.version>
 	</properties>
 </project>
