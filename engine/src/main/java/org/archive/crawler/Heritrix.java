@@ -45,30 +45,21 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.output.TeeOutputStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.archive.crawler.framework.CrawlJob;
 import org.archive.crawler.framework.Engine;
 import org.archive.crawler.restlet.EngineApplication;
+import org.archive.crawler.restlet.NoSniHostCheckHttpsServerHelper;
 import org.archive.crawler.restlet.RateLimitGuard;
 import org.archive.util.ArchiveUtils;
 import org.archive.util.KeyTool;
 import org.restlet.Component;
+import org.restlet.Context;
 import org.restlet.Server;
 import org.restlet.data.ChallengeScheme;
 import org.restlet.data.Protocol;
 import org.restlet.security.ChallengeAuthenticator;
 import org.restlet.security.MapVerifier;
-
-import java.io.*;
-import java.lang.management.ManagementFactory;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.security.KeyStore;
-import java.security.MessageDigest;
-import java.security.cert.Certificate;
-import java.util.*;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 
 /**
@@ -122,6 +113,13 @@ public class Heritrix {
      */
     private static final String STARTLOG = "heritrix_dmesg.log";
 
+    private enum AuthMode {
+        DIGEST, BASIC;
+
+        public String toString() {
+            return name().toLowerCase();
+        }
+    }
     
     private static void usage(PrintStream out, String[] args) {
         HelpFormatter hf = new HelpFormatter();
@@ -133,6 +131,8 @@ public class Heritrix {
     private static Options options() {
         Options options = new Options();
         options.addOption("h", "help", true, "Usage information." );
+        options.addOption(null, "web-auth", true, "Authentication mode for the" +
+                " web interface: " + Arrays.toString(AuthMode.values()));
         options.addOption("a", "web-admin", true,  "REQUIRED. Specifies the " +
                 "authorization username and password which must be supplied to " +
                 "access the web interface. This may be of the form " +
@@ -165,6 +165,7 @@ public class Heritrix {
                 "to use for crawling.");
         options.addOption(null, "proxy-port", true, "Global http(s) proxy port " +
                 "to use for crawling.");
+        options.addOption(null, "sni-host-check", false, "Validates SNI hostname against the SSL certificate");
         return options;
     }
     
@@ -247,6 +248,7 @@ public class Heritrix {
         // DEFAULTS until changed by cmd-line options
         int port = 8443;
         Set<String> bindHosts = new HashSet<String>();
+        AuthMode authMode = AuthMode.DIGEST;
         String authLogin = "admin";
         String authPassword = null;
         String keystorePath;
@@ -340,6 +342,16 @@ public class Heritrix {
             System.setProperty("https.proxyPort", proxyPort);
         }
 
+        if (cl.hasOption("web-auth")) {
+            try {
+                authMode = AuthMode.valueOf(cl.getOptionValue("web-auth").toUpperCase());
+            } catch (IllegalArgumentException e) {
+                System.err.println("Unsupported --web-auth value '" + cl.getOptionValue("web-auth") +
+                                   "' (must be one of " + Arrays.toString(AuthMode.values()) + ")");
+                System.exit(1);
+            }
+        }
+
         // Restlet will reconfigure logging according to the system property
         // so we must set it for -l to work properly
         System.setProperty("java.util.logging.config.file", properties.getPath());
@@ -360,13 +372,21 @@ public class Heritrix {
             engine = new Engine(jobsDir);
             component = new Component();
 
+            // disable SNI host check by default for backwards compatibility with existing ad-hoc certificates
+            String helperClass = null;
+            if (!cl.hasOption("sni-host-check")) {
+                org.restlet.engine.Engine.getInstance().getRegisteredServers().add(
+                        new NoSniHostCheckHttpsServerHelper(null));
+                helperClass = NoSniHostCheckHttpsServerHelper.class.getName();
+            }
+
             if(bindHosts.isEmpty()) {
                 // listen all addresses
-                setupServer(component, port, null, keystorePath, keystorePassword, keyPassword);
+                setupServer(component, port, null, keystorePath, keystorePassword, keyPassword, helperClass);
             } else {
                 // bind only to declared addresses, or just 'localhost'
                 for(String address : bindHosts) {
-                    setupServer(component, port, address, keystorePath, keystorePassword, keyPassword);
+                    setupServer(component, port, address, keystorePath, keystorePassword, keyPassword, helperClass);
                 }
             }
             component.getClients().add(Protocol.FILE);
@@ -375,9 +395,13 @@ public class Heritrix {
             MapVerifier verifier = new MapVerifier();
             verifier.getLocalSecrets().put(authLogin, authPassword.toCharArray());
 
-            RateLimitGuard guard = new RateLimitGuard(component.getContext().createChildContext(),
-                    "Authentication Required", UUID.randomUUID().toString());
-            guard.setWrappedVerifier(verifier);
+            Context guardContext = component.getContext().createChildContext();
+            ChallengeAuthenticator guard = switch (authMode) {
+                case BASIC -> new ChallengeAuthenticator(guardContext, false,
+                        ChallengeScheme.HTTP_BASIC, "Authentication Required", verifier);
+                case DIGEST -> new RateLimitGuard(guardContext, "Authentication Required",
+                        UUID.randomUUID().toString(), verifier);
+            };
             guard.setNext(new EngineApplication(engine));
 
             component.getDefaultHost().attach(guard);
@@ -515,11 +539,16 @@ public class Heritrix {
      * @param keystorePassword
      * @param keyPassword
      */
-    protected void setupServer(Component component, int port, String address, String keystorePath, String keystorePassword, String keyPassword) {
-        Server server = component.getServers().add(Protocol.HTTPS, address, port);
+    protected void setupServer(Component component, int port, String address, String keystorePath, String keystorePassword, String keyPassword, String helperClass) {
+        Context serverContext = component.getServers().getContext().createChildContext();
+        Server server = new Server(serverContext, List.of(Protocol.HTTPS), address, port, null, helperClass);
+        component.getServers().add(server);
         server.getContext().getParameters().add("keystorePath", keystorePath);
         server.getContext().getParameters().add("keystorePassword", keystorePassword);
         server.getContext().getParameters().add("keyPassword", keyPassword);
+
+        // This makes restarting faster. No point delaying shutdown as you can't cluster the Heritrix UI.
+        server.getContext().getParameters().add("shutdown.gracefully", "false");
     }
     
     /**

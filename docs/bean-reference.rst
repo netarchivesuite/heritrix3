@@ -365,6 +365,11 @@ FetchHTTP
 
 .. bean-doc:: ../modules/src/main/java/org/archive/modules/fetcher/FetchHTTP.java
 
+FetchHTTP2
+~~~~~~~~~~
+
+.. bean-doc:: ../modules/src/main/java/org/archive/modules/fetcher/FetchHTTP2.java
+
 FetchSFTP
 ~~~~~~~~~
 
@@ -493,6 +498,24 @@ TrapSuppressExtractor
 
 .. bean-doc:: ../modules/src/main/java/org/archive/modules/extractor/TrapSuppressExtractor.java
 
+Browser Processor
+-----------------
+
+BrowserProcessor
+~~~~~~~~~~~~~~~~
+
+.. bean-doc:: ../engine/src/main/java/org/archive/crawler/processor/BrowserProcessor.java
+
+ExtractLinksBehavior
+~~~~~~~~~~~~~~~~~~~~
+
+.. bean-doc:: ../modules/src/main/java/org/archive/modules/behaviors/ExtractLinksBehavior.java
+
+ScrollDownBehavior
+~~~~~~~~~~~~~~~~~~
+
+.. bean-doc:: ../modules/src/main/java/org/archive/modules/behaviors/ScrollDownBehavior.java
+
 Post-Processors
 ---------------
 
@@ -515,3 +538,43 @@ WARCWriterChainProcessor
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. bean-doc:: ../modules/src/main/java/org/archive/modules/writer/WARCWriterChainProcessor.java
+
+DnsResponseRecordBuilder
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. bean-doc:: ../modules/src/main/java/org/archive/modules/warc/DnsResponseRecordBuilder.java
+
+FtpControlConversationRecordBuilder
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. bean-doc:: ../modules/src/main/java/org/archive/modules/warc/FtpControlConversationRecordBuilder.java
+
+FtpResponseRecordBuilder
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. bean-doc:: ../modules/src/main/java/org/archive/modules/warc/FtpResponseRecordBuilder.java
+
+HttpRequestRecordBuilder
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. bean-doc:: ../modules/src/main/java/org/archive/modules/warc/HttpRequestRecordBuilder.java
+
+HttpResponseRecordBuilder
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. bean-doc:: ../modules/src/main/java/org/archive/modules/warc/HttpResponseRecordBuilder.java
+
+MetadataRecordBuilder
+^^^^^^^^^^^^^^^^^^^^^
+
+.. bean-doc:: ../modules/src/main/java/org/archive/modules/warc/MetadataRecordBuilder.java
+
+RevisitRecordBuilder
+^^^^^^^^^^^^^^^^^^^^
+
+.. bean-doc:: ../modules/src/main/java/org/archive/modules/warc/RevisitRecordBuilder.java
+
+WhoisResponseRecordBuilder
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. bean-doc:: ../modules/src/main/java/org/archive/modules/warc/WhoisResponseRecordBuilder.java

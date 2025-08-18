@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 
 import javax.net.SocketFactory;
 
-import org.apache.commons.httpclient.URIException;
+import org.archive.url.URIException;
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPCommand;
 import org.archive.io.RecordingInputStream;
@@ -219,7 +219,7 @@ public class FetchFTP extends Processor  {
      * Set to zero for no timeout (Not. recommended. Could hang a thread on an
      * unresponsive server). This timeout is used timing out socket opens and
      * for timing out each socket read. Make sure this value is &lt;
-     * {@link #TIMEOUT_SECONDS} for optimal configuration: ensures at least one
+     * {@link #getTimeoutSeconds()} for optimal configuration: ensures at least one
      * retry read.
      */
     public void setSoTimeoutMs(int timeout) {

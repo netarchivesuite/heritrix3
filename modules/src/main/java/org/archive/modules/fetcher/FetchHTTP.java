@@ -44,8 +44,8 @@ import java.util.logging.Logger;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.lang.StringUtils;
+import org.archive.url.URIException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
@@ -409,12 +409,12 @@ public class FetchHTTP extends Processor implements Lifecycle {
         return (Boolean) kp.get("sendRange");
     }
     /**
-     * Send 'Range' header when a limit ({@link #MAX_LENGTH_BYTES}) on
+     * Send 'Range' header when a limit ({@link #setMaxLengthBytes(long)}) on
      * document size.
      * <p>
      * Be polite to the HTTP servers and send the 'Range' header, stating that
      * you are only interested in the first n bytes. Only pertinent if
-     * {@link #MAX_LENGTH_BYTES} &gt; 0. Sending the 'Range' header results in a
+     * {@link #getMaxLengthBytes()} &gt; 0. Sending the 'Range' header results in a
      * '206 Partial Content' status response, which is better than just cutting
      * the response mid-download. On rare occasion, sending 'Range' will
      * generate '416 Request Range Not Satisfiable' response.

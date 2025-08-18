@@ -22,11 +22,14 @@ package org.archive.modules.extractor;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
-import org.apache.commons.httpclient.URIException;
+import org.archive.url.URIException;
 import org.archive.modules.CrawlMetadata;
 import org.archive.modules.CrawlURI;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
@@ -53,9 +56,8 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
     
     /**
      * Test a GET FORM ACTION extraction
-     * 
-     * @throws URIException
      */
+    @Test
     public void testFormsLinkGet() throws URIException {
         UURI uuri = UURIFactory.getInstance("http://www.example.org");
         CrawlURI curi = new CrawlURI(uuri);
@@ -73,17 +75,16 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
         curi.getOutLinks();
         assertTrue(CollectionUtils.exists(curi.getOutLinks(), new Predicate() {
             public boolean evaluate(Object object) {
-                return ((CrawlURI) object).getURI().indexOf(
-                        "/redirect_me?form=true&checked[]=1&unchecked[]=&selectBox=selectedOption&test=Go")>=0;
+                return ((CrawlURI) object).getURI().contains(
+                        "/redirect_me?form=true&checked[]=1&unchecked[]=&selectBox=selectedOption&test=Go");
             }
         }));
     }
     
     /**
      * Test a POST FORM ACTION being properly ignored 
-     * 
-     * @throws URIException
      */
+    @Test
     public void testFormsLinkIgnorePost() throws URIException {
         UURI uuri = UURIFactory.getInstance("http://www.example.org");
         CrawlURI curi = new CrawlURI(uuri);
@@ -99,19 +100,18 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
             "</form>";   
         getExtractor().extract(curi, cs);
         curi.getOutLinks();
-        assertTrue(!CollectionUtils.exists(curi.getOutLinks(), new Predicate() {
+        assertFalse(CollectionUtils.exists(curi.getOutLinks(), new Predicate() {
             public boolean evaluate(Object object) {
-                return ((CrawlURI) object).getURI().indexOf(
-                        "/redirect_me?form=true&checked[]=1&unchecked[]=&selectBox=selectedOption&test=Go")>=0;
+                return ((CrawlURI) object).getURI().contains(
+                        "/redirect_me?form=true&checked[]=1&unchecked[]=&selectBox=selectedOption&test=Go");
             }
         }));
     }
     
     /**
      * Test a POST FORM ACTION being found with non-default setting
-     * 
-     * @throws URIException
      */
+    @Test
     public void testFormsLinkFindPost() throws URIException {
         UURI uuri = UURIFactory.getInstance("http://www.example.org");
         CrawlURI curi = new CrawlURI(uuri);
@@ -130,18 +130,19 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
         curi.getOutLinks();
         assertTrue(CollectionUtils.exists(curi.getOutLinks(), new Predicate() {
             public boolean evaluate(Object object) {
-                return ((CrawlURI) object).getURI().indexOf(
-                        "/redirect_me?form=true&checked[]=1&unchecked[]=&selectBox=selectedOption&test=Go")>=0;
+                return ((CrawlURI) object).getURI().contains(
+                        "/redirect_me?form=true&checked[]=1&unchecked[]=&selectBox=selectedOption&test=Go");
             }
         }));
     }
-    
+
+    @Test
     public void testMultipleAttributesPerElement() throws URIException {
         UURI uuri = UURIFactory.getInstance("http://www.example.org");
         CrawlURI curi = new CrawlURI(uuri);
         CharSequence cs = "<a src=\"http://www.example.com/\" href=\"http://www.archive.org/\"> "; 
         getExtractor().extract(curi, cs);
-        assertTrue("not all links found", curi.getOutLinks().size() == 2);
+        assertEquals(2, curi.getOutLinks().size(), "not all links found");
     }
 
     /*
@@ -149,6 +150,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testConditionalComment1() throws URIException {
     }
 
@@ -157,6 +159,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testMetaContentURI() throws URIException {
     }
    
@@ -165,6 +168,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testDataAttributesTelerama() throws URIException {
     }
     
@@ -173,6 +177,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testDataAttributesLeMonde() throws URIException {
     }
    
@@ -181,6 +186,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testDataAttributesEuronews() throws URIException {
     }
     
@@ -189,6 +195,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testSourceSrcsetAttributes() throws URIException {
     }
     
@@ -197,6 +204,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testDataFullSrcAttributesSlate() throws URIException {
     }
     
@@ -205,6 +213,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testDataLazyAttributes() throws URIException {
     }
     
@@ -213,6 +222,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testDataSrcAttributes() throws URIException {
     }
     
@@ -221,6 +231,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testSrcSetAttributes() throws URIException {
     }
     
@@ -229,6 +240,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testDataAttributes20Minutes() throws URIException {
     }
     
@@ -237,6 +249,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * JerichoExtractorHTML
      */
     @Override
+    @Test
     public void testDataAttributesNouvelObs() throws URIException {
     }
     

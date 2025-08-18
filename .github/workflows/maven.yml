@@ -1,5 +1,8 @@
 name: Java CI with Maven
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ master ]
@@ -10,7 +13,7 @@ jobs:
   build:
     strategy:
       matrix:
-        jdk: [17, 21, 23]
+        jdk: [17, 21, 24]
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -22,7 +25,7 @@ jobs:
         java-version: ${{ matrix.jdk }}
         distribution: 'temurin'
     - name: Cache local Maven repository
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ~/.m2/repository
         key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}

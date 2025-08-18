@@ -16,7 +16,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.httpclient.URIException;
+import org.archive.url.URIException;
 import org.archive.io.RecordingInputStream;
 import org.archive.io.ReplayCharSequence;
 import org.archive.modules.CrawlURI;
@@ -204,7 +204,7 @@ public class FetchSFTP extends Processor {
 	 * Set to zero for no timeout (Not. recommended. Could hang a thread on an
 	 * unresponsive server). This timeout is used timing out socket opens and
 	 * for timing out each socket read. Make sure this value is &lt;
-	 * {@link #TIMEOUT_SECONDS} for optimal configuration: ensures at least one
+	 * {@link #getTimeoutSeconds()} for optimal configuration: ensures at least one
 	 * retry read.
 	 */
 	public void setSoTimeoutMs(int timeout) {

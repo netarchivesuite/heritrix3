@@ -19,8 +19,8 @@
 
 package org.archive.crawler.frontier;
 
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.lang.StringUtils;
+import org.archive.url.URIException;
+import org.apache.commons.lang3.StringUtils;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 

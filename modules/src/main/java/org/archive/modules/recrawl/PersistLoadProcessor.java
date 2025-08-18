@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.archive.modules.CrawlURI;
 import org.archive.spring.ConfigFile;
 import org.archive.spring.ConfigPath;
@@ -71,7 +71,7 @@ public class PersistLoadProcessor extends PersistOnlineProcessor {
      * current store at startup. (Whenever possible, it would be better to
      * ensure the original history DB is in its own independent BDB environment,
      * and then copy and reuse that environment in the followup crawl(s).)
-     * Only one of {@link preloadSource} and {@link preloadSourceUrl} may be specified.
+     * Only one of {@link #setPreloadSource(ConfigPath)} and {@link #setPreloadSourceUrl(String)} may be specified.
      */
     protected String preloadSourceUrl = "";
     public String getPreloadSourceUrl() {

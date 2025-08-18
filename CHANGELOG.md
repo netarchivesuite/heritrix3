@@ -2,9 +2,156 @@
 
 ## [Unreleased](https://github.com/internetarchive/heritrix3/tree/HEAD)
 
-[Full Changelog](https://github.com/internetarchive/heritrix3/compare/3.6.0...HEAD)
+[Full Changelog](https://github.com/internetarchive/heritrix3/compare/3.10.0...HEAD)
 
-## 3.7.0
+## [3.10.1](https://github.com/internetarchive/heritrix3/releases/tag/3.10.1)  (2025-07-21)
+
+[Download distribution zip](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.10.1/heritrix-3.10.1-dist.zip) (or [tar.gz](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.10.1/heritrix-3.10.1-dist.tar.gz))
+
+[Full Changelog](https://github.com/internetarchive/heritrix3/compare/3.10.0...3.10.1) | [Javadoc](https://www.javadoc.io/doc/org.archive.heritrix/heritrix-engine/3.10.1/index.html) | [Maven Central](https://search.maven.org/artifact/org.archive.heritrix/heritrix/3.10.1/pom)
+
+#### Bug fixes
+
+- **FetchHTTP2**
+  - HTTP/1.1 is now used on servers that don't support ALPN. Fixes `IOException: frame_size_error/invalid_frame_length`
+  - Fixed NullPointerException when the server's IP address isn't available. 
+
+- **Seeds report:** Redirect URIs are now recorded from the `Location` header for HTTP status codes `303 See other`, 
+ `307 Temporary Redirect` and `308 Permanent Redirect`.
+  Previously this was only done for `301 Moved Permanently` and `302 Found`. 
+
+- **Public suffixes list:** A resource naming conflict between webarchive-commons and crawler-commons for 
+  `effective_tld_names.dat` was resolved and the list was updated to the latest version. 
+
+#### Dependency upgrades
+
+- **codemirror@state**: 6.4.0 → 6.5.11 
+- **codemirror@view**: 6.37.1 → 6.37.2
+- **commons-lang**: 2.6 → 3.18.0
+- **commons-io**: 2.19.0 → 2.20.0
+- **crawler-commons**: 1.4 → 1.5
+- **jetty**: 12.0.17 → 12.0.22
+- **jsch**: 2.27.0 → 2.27.2
+- **junit-jupiter**: 5.13.2 → 5.13.3
+- **restlet**: 2.6.0-rc1 → 2.6.0
+- **spring**: 6.2.7 → 6.2.9
+- **webarchive-commons**: 2.0.1 → 3.0.0
+
+## [3.10.0](https://github.com/internetarchive/heritrix3/releases/tag/3.10.0)  (2025-06-12)
+
+[Download distribution zip](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.10.0/heritrix-3.10.0-dist.zip) (or [tar.gz](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.10.0/heritrix-3.10.0-dist.tar.gz))
+
+[Full Changelog](https://github.com/internetarchive/heritrix3/compare/3.9.0...3.10.0) | [Javadoc](https://www.javadoc.io/doc/org.archive.heritrix/heritrix-engine/3.10.0/index.html) | [Maven Central](https://search.maven.org/artifact/org.archive.heritrix/heritrix/3.10.0/pom)
+
+#### New features
+
+- **BrowserProcessor:** Loads fetched pages in a local browser (Firefox/ChromeDriver), records all browser requests, 
+  and runs pluggable behaviors (e.g. scrolling, link extraction). [#653](https://github.com/internetarchive/heritrix3/pull/653)
+  - Uses the [WebDriver BiDi protocol](https://www.w3.org/TR/webdriver-bidi/) for browser automation.
+  - The recording proxy is built on Jetty's ProxyHandler and the FetchHTTP2 module.
+  - **Status:** Working for small crawls but needs more robust error handling (browser crashes, resource limits).
+
+- **Basic web auth:** You can now switch the web interface from Digest authentication to Basic authentication
+  with the `--web-auth basic` command-line option. This is useful when running Heritrix behind a reverse proxy that
+  adds external authentication. [#654](https://github.com/internetarchive/heritrix3/pull/654)
+
+- **Robots.txt wildcards:** The `*` and `$` wildcard rules from RFC 9309 are now supported.
+  [#656](https://github.com/internetarchive/heritrix3/pull/656)
+
+- **FetchHTTP2:** Added HTTP proxy support. [#657](https://github.com/internetarchive/heritrix3/pull/657)
+
+#### Fixes
+
+- **Code editor:** The configuration editor and script console were upgraded to CodeMirror 6. This resolves some browser
+  incompatibilities, allowing CodeMirror’s own find function to be re-enabled for reliable text search of content far
+  outside the viewport. [#651](https://github.com/internetarchive/heritrix3/pull/651)
+
+- **BDB shutdown interrupt handling:** The thread’s interrupted flag is now cleared before some BDB interactions to reduce the likelihood of environment invalidation when requestCrawlStop() is called repeatedly. [#659](https://github.com/internetarchive/heritrix3/pull/659)
+
+- **FetchHTTP2:** Fixed gzip alert log messages by configuring HttpClient to not decode gzip encoding from response.
+
+#### Removals
+
+- **Removed Apache HttpClient 3**: If you have custom Heritrix modules you may need to update the following
+  class references in your code: 
+  
+  | Removed                                                   | Replacement                          |
+  |-----------------------------------------------------------|--------------------------------------|
+  | `org.apache.commons.httpclient.URIException`              | `org.archive.url.URIException`       |
+  | `org.apache.commons.httpclient.Header`                    | `org.archive.format.http.HttpHeader` |
+
+  Note that Apache HttpClient 4 (`org.apache.http`) was not removed.
+  [#652](https://github.com/internetarchive/heritrix3/pull/652)
+
+#### Dependency Upgrades
+
+- **codemirror**: 2.23 → 6
+- **easymock**: 5.5.0 → removed
+- **groovy**: 4.0.26 → 4.0.27
+- **junit**: 5.12.2 → 5.13.1
+- **kafka-clients**: 3.9.0 → 3.9.1
+- **spring**: 6.2.6 → 6.2.7
+- **webarchive-commons**: 1.3.0 → 2.0.1
+
+## [3.9.0](https://github.com/internetarchive/heritrix3/releases/tag/3.9.0) (2025-05-13)
+
+[Download distribution zip](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.9.0/heritrix-3.9.0-dist.zip) (or [tar.gz](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.9.0/heritrix-3.9.0-dist.tar.gz))
+
+[Full Changelog](https://github.com/internetarchive/heritrix3/compare/3.8.0...3.9.0) | [Javadoc](https://www.javadoc.io/doc/org.archive.heritrix/heritrix-engine/3.9.0/index.html) | [Maven Central](https://search.maven.org/artifact/org.archive.heritrix/heritrix/3.9.0/pom)
+
+#### New features
+
+- **FetchHTTP2**: Added a new fetch module supporting HTTP/2 and HTTP/3. [#649](https://github.com/internetarchive/heritrix3/pull/649)
+
+#### Fixes
+
+- **Fixed HighestUriPrecedenceProvider:** Added Histotable serializer and Kryo autoregistration. [#647](https://github.com/internetarchive/heritrix3/pull/647)
+
+#### Changes
+
+- **JUnit 5:** Upgraded all JUnit 3 and 4 style tests to JUnit 5. [#650](https://github.com/internetarchive/heritrix3/pull/650)
+
+#### Dependency Upgrades
+
+- **commons-io**: 2.18.0 → 2.19.0
+- **gson**: 2.12.1 → 2.13.1
+- **jetty**: 9.4.19.v20190610 → 12.0.17
+- **jsch**: 0.2.24 → 2.27.0
+- **junit**: 4.13.2 → 5.12.2
+- **pdfbox**: 3.0.4 → 3.0.5
+- **restlet**: 2.5.0 → 2.6.0-RC1
+- **spring**: 6.2.5 → 6.2.6
+
+## [3.8.0](https://github.com/internetarchive/heritrix3/releases/tag/3.8.0) (2025-04-01)
+
+[Download distribution zip](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.8.0/heritrix-3.8.0-dist.zip) (or [tar.gz](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.8.0/heritrix-3.8.0-dist.tar.gz))
+
+[Full Changelog](https://github.com/internetarchive/heritrix3/compare/3.7.0...3.8.0) | [Javadoc](https://www.javadoc.io/doc/org.archive.heritrix/heritrix-engine/3.8.0/index.html) | [Maven Central](https://search.maven.org/artifact/org.archive.heritrix/heritrix/3.8.0/pom)
+
+#### New Features
+
+- **ExtractorYoutubeDL processArguments**: New option for overriding the default `yt-dlp` process arguments. [#644](https://github.com/internetarchive/heritrix3/pull/644)
+
+#### Fixes
+
+- **Slow tests**: Fixed `ObjectIdentityBdbManualCacheTest` so it no longer fails when running tests with `-DrunSlowTests=true`.
+- **Test stability**: Disabled `FetchHTTPTest.testHostHeaderDefaultPort` due to sporadic test failures.
+- **Code cleanup**: Fixed some compiler and IDE warnings. Removed unused utility classes (JavaLiterals, LogUtils).
+
+#### Dependency Upgrades
+
+- **amqp-client**: 5.24.0 → 5.25.0
+- **beanshell**: 2.0b5 → 2.0b6
+- **commons-codec**: 1.17.2 → 1.18.0
+- **dnsjava**: 3.6.2 → 3.6.3
+- **groovy**: 4.0.24 → 4.0.26
+- **gson**: 2.11.0 → 2.12.1
+- **jsch**: 0.2.22 → 0.2.24
+- **pdfbox**: 3.0.3 → 3.0.4
+- **slf4j**: 2.0.16 → 2.0.17
+- **spring**: 6.1.16 → 6.2.5
+
+## [3.7.0](https://github.com/internetarchive/heritrix3/releases/tag/3.7.0) (2025-02-03)
 
 [Download distribution zip](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.7.0/heritrix-3.7.0-dist.zip) (or [tar.gz](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.7.0/heritrix-3.7.0-dist.tar.gz))
 
@@ -45,7 +192,7 @@
 - spring 6.1.16
 - webarchive-commons 1.3.0
 
-## 3.6.0
+## [3.6.0](https://github.com/internetarchive/heritrix3/releases/tag/3.6.0) (2024-10-29)
 
 [Download distribution zip](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.6.0/heritrix-3.6.0-dist.zip) (or [tar.gz](https://repo1.maven.org/maven2/org/archive/heritrix/heritrix/3.6.0/heritrix-3.6.0-dist.tar.gz))
 
@@ -92,7 +239,7 @@ This release of Heritrix **requires Java 17 or later**.
 - spring-framework 6.1.15
 - webarchive-commons 1.2.0
 
-## [3.5.0](https://github.com/internetarchive/heritrix3/releases/3.5.0) 2024-10-29
+## [3.5.0](https://github.com/internetarchive/heritrix3/releases/3.5.0) (2024-10-29)
 
 [Full Changelog](https://github.com/internetarchive/heritrix3/compare/3.4.0-20240909...3.5.0)
 
@@ -113,7 +260,7 @@ This release of Heritrix **requires Java 17 or later**.
 - jetty 9.4.56.v20240826
 - webarchive-commons 1.1.10
 
-## [3.4.0-20240909](https://github.com/internetarchive/heritrix3/releases/3.4.0-20240909) 2024-09-09
+## [3.4.0-20240909](https://github.com/internetarchive/heritrix3/releases/3.4.0-20240909) (2024-09-09)
 
 [Full Changelog](https://github.com/internetarchive/heritrix3/compare/3.4.0-20220727...3.4.0-20240909)
 
