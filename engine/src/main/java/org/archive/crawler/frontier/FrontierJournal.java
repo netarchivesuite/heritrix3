@@ -26,7 +26,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.commons.httpclient.URIException;
+import org.archive.url.URIException;
 import org.archive.crawler.framework.Frontier;
 import org.archive.io.CrawlerJournal;
 import org.archive.modules.CrawlURI;
@@ -166,8 +166,6 @@ public class FrontierJournal extends CrawlerJournal {
      * recovery log into the frontier as considered included. 
      * 
      * @param source recovery log file to use
-     * @param controller CrawlController of crawl to update
-     * @param retainFailures whether failure ('Ff') URIs should count as done
      * @return number of lines in recovery log (for reference)
      * @throws IOException
      */
@@ -235,7 +233,6 @@ public class FrontierJournal extends CrawlerJournal {
      * (excepting those the frontier drops as already having been included)
      * 
      * @param source recovery log file to use
-     * @param controller CrawlController of crawl to update
      * @param params Map of options to apply
      * @param enough latch signalling 'enough' URIs queued to begin crawling
      */
