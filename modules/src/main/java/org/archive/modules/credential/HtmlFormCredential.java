@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import org.apache.commons.httpclient.URIException;
+import org.archive.url.URIException;
 import org.archive.modules.CrawlURI;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
@@ -75,12 +75,15 @@ public class HtmlFormCredential extends Credential {
      * GET or POST.
      */
     /** @deprecated ignored, always POST*/
+    @Deprecated
     protected Method httpMethod = Method.POST;
     /** @deprecated ignored, always POST*/
+    @Deprecated
     public Method getHttpMethod() {
         return this.httpMethod;
     }
     /** @deprecated ignored, always POST*/
+    @Deprecated
     public void setHttpMethod(Method method) {
         this.httpMethod = method; 
     }

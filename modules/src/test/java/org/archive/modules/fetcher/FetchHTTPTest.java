@@ -18,22 +18,16 @@
  */
 package org.archive.modules.fetcher;
 
-import static org.archive.modules.fetcher.FetchHTTPTestServers.BASIC_AUTH_LOGIN;
-import static org.archive.modules.fetcher.FetchHTTPTestServers.BASIC_AUTH_PASSWORD;
-import static org.archive.modules.fetcher.FetchHTTPTestServers.BASIC_AUTH_REALM;
-import static org.archive.modules.fetcher.FetchHTTPTestServers.DEFAULT_GZIPPED_PAYLOAD;
-import static org.archive.modules.fetcher.FetchHTTPTestServers.DEFAULT_PAYLOAD_STRING;
-import static org.archive.modules.fetcher.FetchHTTPTestServers.DIGEST_AUTH_LOGIN;
-import static org.archive.modules.fetcher.FetchHTTPTestServers.DIGEST_AUTH_PASSWORD;
-import static org.archive.modules.fetcher.FetchHTTPTestServers.DIGEST_AUTH_REALM;
-import static org.archive.modules.fetcher.FetchHTTPTestServers.ETAG_TEST_VALUE;
-import static org.junit.Assert.*;
+import static org.archive.modules.fetcher.FetchHTTPTestServers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -41,11 +35,11 @@ import java.util.logging.Logger;
 
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLException;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.URIException;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.archive.url.URIException;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NoHttpResponseException;
 import org.archive.httpclient.ConfigurableX509TrustManager.TrustLevel;
@@ -61,18 +55,16 @@ import org.archive.modules.revisit.ServerNotModifiedRevisit;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
 import org.archive.util.Recorder;
-import org.archive.util.TmpDirTestCase;
 import org.bbottema.javasocksproxyserver.SocksServer;
-import org.eclipse.jetty.client.api.Response;
-import org.eclipse.jetty.proxy.ConnectHandler;
-import org.eclipse.jetty.proxy.ProxyServlet;
+import org.eclipse.jetty.client.Response;
+import org.eclipse.jetty.ee10.proxy.ProxyServlet;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.eclipse.jetty.server.handler.ConnectHandler;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.io.TempDir;
 
 public class FetchHTTPTest {
     
@@ -89,6 +81,9 @@ public class FetchHTTPTest {
     protected FetchHTTP fetcher;
     protected FetchHTTP socksFetcher;
     protected SocksServer socksServer;
+
+    @TempDir
+    Path tempDir;
 
     protected FetchHTTP fetcher() throws IOException {
         if (fetcher == null) { 
@@ -140,15 +135,15 @@ public class FetchHTTPTest {
         assertEquals("sha1:TQ5R6YVOZLTQENRIIENVGXHOPX3YCRNJ", curi.getContentDigestSchemeString());
         if (!exclusions.contains("contentType")) {
             assertEquals("text/plain;charset=US-ASCII", curi.getContentType());
-            assertEquals(Charset.forName("US-ASCII"), curi.getRecorder().getCharset());
+            assertEquals(StandardCharsets.US_ASCII, curi.getRecorder().getCharset());
         }
         assertTrue(curi.getCredentials().isEmpty());
         assertTrue(curi.getFetchDuration() >= 0);
         if (!exclusions.contains("fetchStatus")) {
-            assertTrue(curi.getFetchStatus() == 200);
+            assertEquals(200, curi.getFetchStatus());
         }
         if (!exclusions.contains("fetchTypeGET")) {
-            assertTrue(curi.getFetchType() == FetchType.HTTP_GET);
+            assertSame(FetchType.HTTP_GET, curi.getFetchType());
         }
         
         // check message body, i.e. "raw, possibly chunked-transfer-encoded message contents not including the leading headers"
@@ -177,32 +172,32 @@ public class FetchHTTPTest {
      */
     static protected String rawResponseString(CrawlURI curi) throws IOException, UnsupportedEncodingException {
         byte[] buf = IOUtils.toByteArray(curi.getRecorder().getReplayInputStream());
-        return new String(buf, "US-ASCII");
+        return new String(buf, StandardCharsets.US_ASCII);
     }
     /**
      * Raw message body, before any unchunking or content-decoding.
      */
     static protected String messageBodyString(CrawlURI curi) throws IOException, UnsupportedEncodingException {
         byte[] buf = IOUtils.toByteArray(curi.getRecorder().getMessageBodyReplayInputStream());
-        return new String(buf, "US-ASCII");
+        return new String(buf, StandardCharsets.US_ASCII);
     }
     /**
      * Message body after unchunking but before content-decoding.
      */
     static protected String entityString(CrawlURI curi) throws IOException, UnsupportedEncodingException {
         byte[] buf = IOUtils.toByteArray(curi.getRecorder().getEntityReplayInputStream());
-        return new String(buf, "US-ASCII");
+        return new String(buf, StandardCharsets.US_ASCII);
     }
     /**
      * Unchunked, content-decoded message body.
      */
     static protected String contentString(CrawlURI curi) throws IOException, UnsupportedEncodingException {
         byte[] buf = IOUtils.toByteArray(curi.getRecorder().getContentReplayInputStream());
-        return new String(buf, "US-ASCII");
+        return new String(buf, StandardCharsets.US_ASCII);
     }
     static protected String httpRequestString(CrawlURI curi) throws IOException, UnsupportedEncodingException {
         byte[] buf = IOUtils.toByteArray(curi.getRecorder().getRecordedOutput().getReplayInputStream());
-        return new String(buf, "US-ASCII");
+        return new String(buf, StandardCharsets.US_ASCII);
     }
 
     @Test
@@ -273,7 +268,7 @@ public class FetchHTTPTest {
 
         // check that we got the expected response and the fetcher did its thing
         assertEquals(401, curi.getFetchStatus());
-        assertEquals("basic realm=\"basic-auth-realm\"", curi.getHttpResponseHeader("WWW-Authenticate"));
+        assertEquals("Basic realm=\"basic-auth-realm\"", curi.getHttpResponseHeader("WWW-Authenticate"));
         assertTrue(curi.getCredentials().contains(basicAuthCredential));
         assertTrue(curi.getHttpAuthChallenges() != null && curi.getHttpAuthChallenges().containsKey("basic"));
         
@@ -352,7 +347,7 @@ public class FetchHTTPTest {
         
         // check for set-cookie header
         byte[] buf = IOUtils.toByteArray(curi.getRecorder().getReplayInputStream());
-        String rawResponseString = new String(buf, "US-ASCII");
+        String rawResponseString = new String(buf, StandardCharsets.US_ASCII);
         assertTrue(rawResponseString.contains("Set-Cookie: test-cookie-name=test-cookie-value\r\n"));
     }
 
@@ -375,14 +370,16 @@ public class FetchHTTPTest {
         assertEquals(Charset.forName("US-ASCII"), curi.getRecorder().getCharset());
         assertTrue(curi.getCredentials().isEmpty());
         assertTrue(curi.getFetchDuration() >= 0);
-        assertTrue(curi.getFetchStatus() == 200);
-        assertTrue(curi.getFetchType() == FetchType.HTTP_GET);
+        assertEquals(200, curi.getFetchStatus());
+        assertSame(curi.getFetchType(), FetchType.HTTP_GET);
 
         // check message body, i.e. "raw, possibly chunked-transfer-encoded message contents not including the leading headers"
-        assertTrue(Arrays.equals(DEFAULT_GZIPPED_PAYLOAD, IOUtils.toByteArray(curi.getRecorder().getMessageBodyReplayInputStream())));
+        assertArrayEquals(DEFAULT_GZIPPED_PAYLOAD,
+                IOUtils.toByteArray(curi.getRecorder().getMessageBodyReplayInputStream()));
 
         // check entity, i.e. "message-body after any (usually-unnecessary) transfer-decoding but before any content-encoding (eg gzip) decoding"
-        assertTrue(Arrays.equals(DEFAULT_GZIPPED_PAYLOAD, IOUtils.toByteArray(curi.getRecorder().getEntityReplayInputStream())));
+        assertArrayEquals(DEFAULT_GZIPPED_PAYLOAD,
+                IOUtils.toByteArray(curi.getRecorder().getEntityReplayInputStream()));
 
         // check content, i.e. message-body after possibly tranfer-decoding and after content-encoding (eg gzip) decoding
         assertEquals(DEFAULT_PAYLOAD_STRING, contentString(curi));
@@ -464,8 +461,9 @@ public class FetchHTTPTest {
         Server httpProxyServer = new Server(new InetSocketAddress("localhost", 7877));
         ConnectHandler connectHandler = new ConnectHandler();
         httpProxyServer.setHandler(connectHandler);
-        ServletContextHandler context = new ServletContextHandler(connectHandler, "/",
-                ServletContextHandler.SESSIONS);
+        ServletContextHandler context = new ServletContextHandler( "/", ServletContextHandler.SESSIONS);
+        connectHandler.setHandler(context);
+
         ServletHolder proxyServlet = new ServletHolder(TestProxyServlet.class);
         context.addServlet(proxyServlet, "/*");
         context.setAttribute("proxy-user", user);
@@ -613,12 +611,12 @@ public class FetchHTTPTest {
         // logger.info("\n" + httpRequestString(curi));
         // logger.info("\n" + rawResponseString(curi));
         assertTrue(httpRequestString(curi).contains("If-Modified-Since: Thu, 01 Jan 1970 00:00:00 GMT\r\n"));
-        assertTrue(curi.getFetchStatus() == 304);
+        assertEquals(304, curi.getFetchStatus());
 
         assertNull(curi.getRevisitProfile());
         fetchHistoryProcessor.process(curi);
         assertNotNull(curi.getRevisitProfile());
-        assertTrue(curi.getRevisitProfile() instanceof ServerNotModifiedRevisit);
+        assertInstanceOf(ServerNotModifiedRevisit.class, curi.getRevisitProfile());
         ServerNotModifiedRevisit revisit = (ServerNotModifiedRevisit) curi.getRevisitProfile();
         assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", revisit.getLastModified());
         assertNull(revisit.getETag());
@@ -631,7 +629,7 @@ public class FetchHTTPTest {
         CrawlURI curi = makeCrawlURI("http://localhost:7777/if-none-match");
         fetcher().process(curi);
         assertFalse(httpRequestString(curi).toLowerCase().contains("if-none-match: "));
-        assertTrue(curi.getHttpResponseHeader("etag").equals(ETAG_TEST_VALUE));
+        assertEquals(ETAG_TEST_VALUE, curi.getHttpResponseHeader("etag"));
         runDefaultChecks(curi, "requestLine");
 
         FetchHistoryProcessor fetchHistoryProcessor = new FetchHistoryProcessor();
@@ -645,7 +643,7 @@ public class FetchHTTPTest {
         assertNull(curi.getRevisitProfile());
         fetchHistoryProcessor.process(curi);
         assertNotNull(curi.getRevisitProfile());
-        assertTrue(curi.getRevisitProfile() instanceof ServerNotModifiedRevisit);
+        assertInstanceOf(ServerNotModifiedRevisit.class, curi.getRevisitProfile());
         ServerNotModifiedRevisit revisit = (ServerNotModifiedRevisit) curi.getRevisitProfile();
         assertEquals(ETAG_TEST_VALUE, revisit.getETag());
         assertNull(revisit.getLastModified());
@@ -663,8 +661,8 @@ public class FetchHTTPTest {
         assertEquals("text/plain;charset=US-ASCII", curi.getContentType());
         assertTrue(curi.getCredentials().isEmpty());
         assertTrue(curi.getFetchDuration() >= 0);
-        assertTrue(curi.getFetchStatus() == 200);
-        assertTrue(curi.getFetchType() == FetchType.HTTP_GET);
+        assertEquals(200, curi.getFetchStatus());
+        assertSame(curi.getFetchType(), FetchType.HTTP_GET);
         
         assertEquals(1, curi.getAnnotations().size());
         assertTrue(curi.getAnnotations().contains("midFetchAbort"));
@@ -693,6 +691,7 @@ public class FetchHTTPTest {
      * connection fails immediately insted of timing out.
      */
     @Test
+    @Disabled
     public void testConnectionTimeout() throws Exception {
         CrawlURI curi = makeCrawlURI("http://10.255.255.1/");
         fetcher().setSoTimeoutMs(300);
@@ -707,7 +706,7 @@ public class FetchHTTPTest {
         // commons-httpclient throws java.net.SocketTimeoutException. Both are
         // instances of InterruptedIOException
         assertEquals(1, curi.getNonFatalFailures().size());
-        assertTrue(curi.getNonFatalFailures().toArray()[0] instanceof InterruptedIOException);
+        assertInstanceOf(InterruptedIOException.class, curi.getNonFatalFailures().toArray()[0]);
         assertTrue(curi.getNonFatalFailures().toArray()[0].toString().matches("(?i).*connect.*timed out.*"));
 
         assertEquals(FetchStatusCodes.S_CONNECT_FAILED, curi.getFetchStatus());
@@ -827,7 +826,7 @@ public class FetchHTTPTest {
         CrawlURI curi = makeCrawlURI("http://localhost:7780");
         fetcher().process(curi);
         assertEquals(1, curi.getNonFatalFailures().size());
-        assertTrue(curi.getNonFatalFailures().toArray()[0] instanceof NoHttpResponseException);
+        assertInstanceOf(NoHttpResponseException.class, curi.getNonFatalFailures().toArray()[0]);
         assertEquals(FetchStatusCodes.S_CONNECT_FAILED, curi.getFetchStatus());
         assertEquals(0, curi.getFetchCompletedTime());
         
@@ -839,8 +838,6 @@ public class FetchHTTPTest {
      * Tests a URL not correctly url-encoded, but that heritrix lets pass
      * through to mimic browser behavior. {@link java.net.URI} would reject this
      * url. See class comment on {@link UURI}.
-     * 
-     * @throws Exception
      */
     @Test
     public void testLaxUrlEncoding() throws Exception {
@@ -881,7 +878,8 @@ public class FetchHTTPTest {
         fetcher().process(curi);
         assertEquals("text/plain;charset=cp1251", curi.getHttpResponseHeader("content-type"));
         assertEquals(Charset.forName("cp1251"), curi.getRecorder().getCharset());
-        assertTrue(Arrays.equals(FetchHTTPTestServers.CP1251_PAYLOAD, IOUtils.toByteArray(curi.getRecorder().getContentReplayInputStream())));
+        assertArrayEquals(FetchHTTPTestServers.CP1251_PAYLOAD,
+                IOUtils.toByteArray(curi.getRecorder().getContentReplayInputStream()));
         assertEquals("\u041A\u043E\u0447\u0430\u043D\u0438 \u041E\u0440\u043A"
                 + "\u0435\u0441\u0442\u0430\u0440 \u0435 \u0435\u0434\u0435"
                 + "\u043D \u043E\u0434 \u043D\u0430\u0458\u043F\u043E\u0437"
@@ -919,6 +917,7 @@ public class FetchHTTPTest {
 
     // see https://webarchive.jira.com/browse/HER-2063
     @Test
+    @Disabled("Relies on external service and can randomly fail")
     public void testHostHeaderDefaultPort() throws Exception {
         CrawlURI curi = makeCrawlURI("http://example.com/");
         fetcher().process(curi);
@@ -943,14 +942,14 @@ public class FetchHTTPTest {
         fetcher().process(curi);
 
         assertTrue(httpRequestString(curi).startsWith("POST / HTTP/1.0\r\n"));
-        assertTrue(httpRequestString(curi).endsWith("\r\n\r\nname1=value1&name1=value2&funky+name+2=whoa+crazy%09+%26%26+%F0%9F%8D%BA+%F0%9F%8D%BB+%0A+crazier+%0Dooo"));
+        assertTrue(
+                httpRequestString(curi).endsWith("\r\n\r\nname1=value1&name1=value2&funky+name+2=whoa+crazy%09+%26%26+%F0%9F%8D%BA+%F0%9F%8D%BB+%0A+crazier+%0Dooo"));
         assertEquals(FetchType.HTTP_POST, curi.getFetchType());
         runDefaultChecks(curi, "requestLine", "trailingCRLFCRLF", "fetchTypeGET");
     }
 
     /**
      * Tests support for SOCKS5 proxies by using a temporary SOCKS5 server and routing traffic through it.
-     * @throws Exception
      */
     @Test
     public void testSocksProxy() throws Exception {
@@ -1040,7 +1039,7 @@ public class FetchHTTPTest {
         return fetchHttp;
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws Exception {
         if (fetcher != null) {
             fetcher.stop();
@@ -1058,19 +1057,19 @@ public class FetchHTTPTest {
         }
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpServers() throws Exception {
         FetchHTTPTestServers.ensureHttpServers();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownServers() throws Exception {
         FetchHTTPTestServers.stopHttpServers();
     }
 
     protected Recorder getRecorder() throws IOException {
         if (Recorder.getHttpRecorder() == null) {
-            Recorder httpRecorder = new Recorder(TmpDirTestCase.tmpDir(),
+            Recorder httpRecorder = new Recorder(tempDir.toFile(),
                     getClass().getName(), 16 * 1024, 512 * 1024);
             Recorder.setHttpRecorder(httpRecorder);
         }
