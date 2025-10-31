@@ -558,7 +558,7 @@ in the following format: ```ftp://sftp.example.org/directory``.
 
 The FetchFTP bean needs to be defined:
 
-.. bean-example:: ../modules/src/main/java/org/archive/modules/fetcher/FetchFTP.java
+.. bean-example:: org.archive.modules.fetcher.FetchFTP
 
 and added to the FetchChain:
 
@@ -578,12 +578,21 @@ HTTP/2
 
 To use HTTP/2 the ``FetchHTTP`` bean should replaced with ``FetchHTTP2``:
 
-.. bean-example:: ../modules/src/main/java/org/archive/modules/fetcher/FetchHTTP2.java
+.. bean-example:: org.archive.modules.fetcher.FetchHTTP2
 
 ``FetchHTTP2`` will use HTTP/1.1 for non-https URLs and for servers that do not support HTTP/2. Requests that used HTTP/2
 will be annotated with ``h2`` in the crawl log and ``WARC-Protocol`` header.
 
 Note that ``FetchHTTP2`` currently only supports a limited subset of the ``FetchHTTP`` options.
+
+.. note::
+
+    The WARC standard (as of version 1.1) does not specify how to record HTTP/2 or 3 messages.
+    FetchHTTP2 does not record the original on-the-wire HTTP messages but instead a simplified HTTP/1.1
+    representation without transfer encoding.
+
+    If you want to stay within the bounds of the base WARC standard without extensions, or want to ensure the exact
+    bytes of the HTTP network message are recorded, you may prefer to use FetchHTTP.
 
 HTTP/3
 ~~~~~~
@@ -612,7 +621,7 @@ be added in the following format:``sftp://sftp.example.org/directory``.
 
 The FetchSFTP bean needs to be defined:
 
-.. bean-example:: ../modules/src/main/java/org/archive/modules/fetcher/FetchSFTP.java
+.. bean-example:: org.archive.modules.fetcher.FetchSFTP
 
 and added to the FetchChain:
 

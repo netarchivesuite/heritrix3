@@ -27,8 +27,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 import org.archive.url.URIException;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.exception.NestableRuntimeException;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.archive.io.ReplayCharSequence;
 import org.archive.modules.CrawlURI;
 import org.archive.net.UURI;
@@ -138,6 +137,10 @@ public class ExtractorJS extends ContentExtractor {
             CrawlURI curi, CharSequence cs) {
         return considerStrings(ext, curi, cs, false);
     }
+    public long considerStrings(Extractor ext,
+            CrawlURI curi, CharSequence cs, String attributeContext) {
+        return considerStrings(ext, curi, cs, false);
+    }
     
     public long considerStrings(Extractor ext, 
             CrawlURI curi, CharSequence cs, boolean handlingJSFile) {
@@ -167,8 +170,8 @@ public class ExtractorJS extends ContentExtractor {
     protected boolean considerString(Extractor ext, CrawlURI curi,
             boolean handlingJSFile, String candidate) {
         try {
-            candidate = StringEscapeUtils.unescapeJavaScript(candidate);
-        } catch (NestableRuntimeException e) {
+            candidate = StringEscapeUtils.unescapeEcmaScript(candidate);
+        } catch (Exception e) {
             LOGGER.log(Level.WARNING, "problem unescaping some javascript", e);
         }
         candidate = UriUtils.speculativeFixup(candidate, curi.getUURI());

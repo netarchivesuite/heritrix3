@@ -1,0 +1,18 @@
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "patch"
+          - "minor"
+    ignore:
+      - dependency-name: "com.sleepycat:je"
+      - dependency-name: "net.htmlparser.jericho:jericho-html"
+      - dependency-name: "org.eclipse.jetty:jetty-bom"
+        versions: "[12.1,)"
+      - dependency-name: "org.eclipse.jetty.ee10:jetty-ee10-bom"
+        versions: "[12.1,)"

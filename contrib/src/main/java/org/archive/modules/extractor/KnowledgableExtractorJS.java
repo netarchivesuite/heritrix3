@@ -24,8 +24,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 
 import org.archive.url.URIException;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.exception.NestableRuntimeException;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.archive.modules.CrawlURI;
 import org.archive.net.UURI;
 import org.archive.net.UURIFactory;
@@ -36,7 +35,7 @@ import org.archive.util.TextUtils;
  * specific kinds of web pages. As of April 2015, the one special behavior it
  * has is for drupal generated pages. See https://webarchive.jira.com/browse/ARI-4190
  */
-public class KnowledgableExtractorJS extends ExtractorJS {
+public class KnowledgableExtractorJS extends ConfigurableExtractorJS {
 
     private static Logger LOGGER = 
             Logger.getLogger(KnowledgableExtractorJS.class.getName());
@@ -95,8 +94,8 @@ public class KnowledgableExtractorJS extends ExtractorJS {
         if (m.find()) {
             String basePath = m.group(1);
             try {
-                basePath = StringEscapeUtils.unescapeJavaScript(basePath);
-            } catch (NestableRuntimeException e) {
+                basePath = StringEscapeUtils.unescapeEcmaScript(basePath);
+            } catch (Exception e) {
                 LOGGER.log(Level.WARNING, "problem unescaping purported drupal basePath '" + basePath + "'", e);
             }
 
