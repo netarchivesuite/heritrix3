@@ -194,7 +194,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * Override of ExtractorHTMLTest method because the test fails with
      * JerichoExtractorHTML
      */
-    @Override
+    //@Override
     @Test
     public void testSourceSrcsetAttributes() throws URIException {
     }
@@ -203,7 +203,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * Override of ExtractorHTMLTest method because the test fails with
      * JerichoExtractorHTML
      */
-    @Override
+    //@Override
     @Test
     public void testDataFullSrcAttributesSlate() throws URIException {
     }
@@ -212,7 +212,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * Override of ExtractorHTMLTest method because the test fails with
      * JerichoExtractorHTML
      */
-    @Override
+    //@Override
     @Test
     public void testDataLazyAttributes() throws URIException {
     }
@@ -221,7 +221,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * Override of ExtractorHTMLTest method because the test fails with
      * JerichoExtractorHTML
      */
-    @Override
+    //@Override
     @Test
     public void testDataSrcAttributes() throws URIException {
     }
@@ -230,7 +230,7 @@ public class JerichoExtractorHTMLTest extends ExtractorHTMLTest {
      * Override of ExtractorHTMLTest method because the test fails with
      * JerichoExtractorHTML
      */
-    @Override
+    //@Override
     @Test
     public void testSrcSetAttributes() throws URIException {
     }

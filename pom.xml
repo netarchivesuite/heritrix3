@@ -18,7 +18,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 	<groupId>org.archive</groupId>
 	<!--This project is parent to all under 'projects' subdirectory-->
 	<artifactId>heritrix</artifactId>
-	<version>3.12.1-SNAPSHOT</version>
+	<version>3.12.1-NAS-7.9-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Heritrix 3</name>
 	<description>
@@ -27,13 +27,7 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 	</description>
 	<url>http://crawler.archive.org</url>
 	<inceptionYear>2003</inceptionYear>
-   
-    <scm>
-       <connection>scm:git:https://github.com/internetarchive/heritrix3.git</connection>
-       <developerConnection>scm:git:git@github.com:internetarchive/heritrix3.git</developerConnection>
-       <url>https://github.com/internetarchive/heritrix3</url>
-    <tag>3.10.0</tag>
-  </scm>
+
 
 	<licenses>
 		<license>
@@ -56,15 +50,18 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 	</organization>
 
 	<repositories>
-        <repository>
-            <id>oracleReleases</id>
-            <name>Oracle Released Java Packages</name>
-            <url>https://download.oracle.com/maven</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots />
-        </repository>
+
+		<repository>
+			<id>builds.archive.org,maven2</id>
+			<url>https://builds.archive.org/maven2</url>
+		</repository>
+		<repository>
+			<id>sbforge-nexus</id>
+			<url>https://sbforge.org/nexus/content/groups/public</url>
+			<releases><enabled>true</enabled></releases>
+			<snapshots><enabled>true</enabled></snapshots>
+		</repository>
+
 	</repositories>
 
 	<dependencyManagement>
@@ -82,6 +79,11 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 			<dependency>
 				<groupId>org.archive.heritrix</groupId>
 				<artifactId>engine</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.archive.heritrix</groupId>
+				<artifactId>heritrix-contrib</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<!-- lock httpclient version -->
@@ -143,18 +145,24 @@ http://maven.apache.org/guides/mini/guide-m1-m2.html
 
 	<distributionManagement>
 		<repository>
-			<id>repository</id>
-			<name>Repository</name>
-			<!--Pass as command-line system property to maven-->
-			<url>${repository.url}</url>
+			<id>sbforge-nexus</id>
+			<name>SBForge Nexus Repo manager</name>
+			<url>https://sbforge.org/nexus/content/repositories/releases</url>
 		</repository>
-		<site>
-			<id>website</id>
-			<name>Website</name>
-			<!--Pass as command-line system property to maven-->
-			<url>${website.url}/projects/${project.artifactId}</url>
-		</site>
+
+		<snapshotRepository>
+			<id>sbforge-nexus</id>
+			<name>SBForge Nexus Repo manager</name>
+			<url>https://sbforge.org/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
 	</distributionManagement>
+
+	<scm>
+		<url>https://github.com/netarchivesuite/heritrix3</url>
+		<connection>scm:git:https://github.com/netarchivesuite/heritrix3.git</connection>
+		<developerConnection>scm:git:git@github.com:netarchivesuite/heritrix3.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
 
 	<developers>
 		<developer>
